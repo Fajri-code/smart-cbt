@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--ink: #102033;
+	--muted: #64748b;
+	--canvas: #eef3f7;
+	--surface: #ffffff;
+	--line: #dbe4ec;
+	--accent: #f4b41b;
+	--accent-deep: #d49308;
+	--navy: #071426;
+}
+
+@layer base {
+	html {
+		background: var(--canvas);
+	}
+
+	body {
+		background:
+			radial-gradient(circle at 80% 0%, rgba(244, 180, 27, 0.09), transparent 28rem),
+			linear-gradient(135deg, #f5f8fb 0%, var(--canvas) 48%, #e8eff4 100%);
+		color: var(--ink);
+		font-feature-settings: "ss01" 1, "cv11" 1;
+	}
+
+	button,
+	a,
+	input,
+	select,
+	textarea {
+		transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+	}
+
+	button:active,
+	a:active {
+		transform: translateY(1px);
+	}
+
+	input:focus,
+	select:focus,
+	textarea:focus {
+		border-color: #e4a713 !important;
+		box-shadow: 0 0 0 3px rgba(244, 180, 27, 0.16) !important;
+		outline: none;
+	}
+
+	::selection {
+		background: rgba(244, 180, 27, 0.3);
+		color: var(--ink);
+	}
+}
+
+@layer components {
+	/* Add depth to the existing utility-first surfaces without changing markup. */
+	.bg-white {
+		box-shadow: 0 12px 30px rgba(15, 35, 55, 0.055);
+	}
+
+	.rounded-lg {
+		border-radius: 0.7rem;
+	}
+
+	.sidebar-scrollbar-hidden {
+		background: transparent;
+	}
+
+	aside.bg-slate-950 {
+		background: #ffffff;
+		border-right: 1px solid var(--line);
+		box-shadow: 10px 0 28px rgba(15, 35, 55, 0.04);
+	}
+
+	aside.bg-slate-950 > div:first-child {
+		background: #fffaf0;
+		border-bottom-color: var(--line);
+	}
+
+	aside.bg-slate-950 .text-slate-300 {
+		color: #526273 !important;
+	}
+
+	aside.bg-slate-950 .text-slate-400 {
+		color: #64748b !important;
+	}
+
+	aside.bg-slate-950 .text-slate-500 {
+		color: #8290a0 !important;
+	}
+
+	aside.bg-slate-950 .text-white {
+		color: var(--ink) !important;
+	}
+
+	aside.bg-slate-950 .bg-white\/10 {
+		background: #f1f5f9 !important;
+	}
+
+	aside.bg-slate-950 .hover\:bg-white\/10:hover {
+		background: #f1f5f9 !important;
+		color: var(--ink) !important;
+	}
+
+	aside.bg-slate-950 .bg-white\/5 {
+		background: #f8fafc !important;
+	}
+
+	aside.bg-slate-950 .bg-amber-400 {
+		background: #eaf1ff !important;
+		color: #4169ff !important;
+		box-shadow: none !important;
+	}
+
+	aside.bg-slate-950 .bg-amber-400 svg {
+		color: #4169ff;
+	}
+
+	aside.bg-slate-950 nav > p {
+		color: #a0acbf !important;
+		font-size: 0.68rem;
+		letter-spacing: 0.08em;
+	}
+
+	aside.bg-slate-950 nav a,
+	aside.bg-slate-950 nav span {
+		font-weight: 600;
+	}
+
+	aside.bg-slate-950 nav a {
+		color: #526273 !important;
+	}
+
+	aside.bg-slate-950 nav a.bg-white\/10,
+	aside.bg-slate-950 nav a.bg-amber-400 {
+		color: var(--ink) !important;
+	}
+
+	aside.bg-slate-950 nav a:not(.bg-amber-400) svg {
+		color: #718096;
+	}
+
+	.app-header {
+		background: linear-gradient(110deg, #fff8e6 0%, #ffffff 62%, #f4f8fb 100%);
+	}
+
+	.app-header h2 {
+		color: var(--ink);
+		letter-spacing: -0.02em;
+	}
+
+	.sidebar-scrollbar-hidden a {
+		letter-spacing: 0.005em;
+	}
+
+	.overflow-x-auto table {
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+
+	.overflow-x-auto thead th {
+		background: #f6f9fb;
+		color: #718096;
+		font-size: 0.68rem;
+		letter-spacing: 0.1em;
+	}
+
+	.overflow-x-auto tbody tr {
+		background: rgba(255, 255, 255, 0.72);
+	}
+
+	.overflow-x-auto tbody tr:hover {
+		background: #fffaf0;
+	}
+
+	#page-loading-indicator {
+		background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+		box-shadow: 0 0 14px rgba(244, 180, 27, 0.7);
+	}
+}
+
+#page-loading-indicator {
+	position: fixed;
+	inset: 0 0 auto;
+	z-index: 100;
+	height: 3px;
+	background: #fbbf24;
+	transform: scaleX(0);
+	transform-origin: left;
+	opacity: 0;
+	transition: opacity 150ms ease;
+}
+
+.is-navigating #page-loading-indicator {
+	opacity: 1;
+	animation: page-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes page-loading {
+	0% { transform: scaleX(0.05); }
+	60% { transform: scaleX(0.75); }
+	100% { transform: scaleX(0.95); }
+}
+
+@layer utilities {
+	.sidebar-scrollbar-hidden {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.sidebar-scrollbar-hidden::-webkit-scrollbar {
+		display: none;
+	}
+}

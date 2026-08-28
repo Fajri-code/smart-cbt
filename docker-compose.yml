@@ -1,0 +1,48 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-cbt-app
+    restart: unless-stopped
+    environment:
+      PHP_CLI_SERVER_WORKERS: 4
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - /var/www/node_modules
+      - /var/www/vendor
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -lc "composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -4 -fsS --max-time 3 http://127.0.0.1:8000/robots.txt || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  db:
+    image: postgres:16
+    container_name: smart-cbt-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smart_cbt
+      POSTGRES_USER: smart_cbt
+      POSTGRES_PASSWORD: smart_cbt_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - smart_cbt_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smart_cbt -d smart_cbt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  smart_cbt_pgdata:
