@@ -47,7 +47,7 @@
                                 <tr>
                                     <td class="whitespace-nowrap px-4 py-3">{{ $siswa->nisn ?? $siswa->nis }}</td>
                                     <td class="whitespace-nowrap px-4 py-3 font-medium">{{ $siswa->nama }}</td>
-                                    <td class="whitespace-nowrap px-4 py-3">{{ $siswa->kelasData?->nama_kelas ?? ($siswa->program_tahasus ? 'Tahasus' : '-') }} @if ($siswa->program_tahasus)<span class="ml-1 rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">Program</span>@endif</td>
+                                    <td class="whitespace-nowrap px-4 py-3">{{ $siswa->kelasData?->nama_kelas ?? $siswa->kelas ?? ($siswa->program_tahasus ? 'Tahasus' : '-') }} @if ($siswa->program_tahasus)<span class="ml-1 rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">Program</span>@endif</td>
                                     <td class="whitespace-nowrap px-4 py-3">{{ $siswa->user->email }}</td>
                                     <td class="whitespace-nowrap px-4 py-3"><div class="flex gap-3"><a class="text-blue-600 hover:text-blue-900" href="{{ route('siswa.show', $siswa) }}">Detail</a><a class="text-gray-600 hover:text-gray-900" href="{{ route('siswa.edit', $siswa) }}">Edit</a><form method="POST" action="{{ route('siswa.destroy', $siswa) }}" onsubmit="return confirm('Hapus data siswa ini?')">@csrf @method('DELETE')<button class="text-red-600 hover:text-red-900" type="submit">Hapus</button></form></div></td>
                                 </tr>

@@ -27,6 +27,7 @@ class GuruTokenController extends Controller
     public function generate(Exam $ujian, Request $request): RedirectResponse
     {
         $this->owned($ujian, $request);
+        abort_if($ujian->status === 'selesai', 403, 'Ujian sudah selesai, token tidak bisa dibuat lagi.');
         $ujian->activateToken();
         return back()->with('success', 'Token ujian berhasil dibuat.');
     }
@@ -34,6 +35,7 @@ class GuruTokenController extends Controller
     public function toggle(Exam $ujian, Request $request): RedirectResponse
     {
         $this->owned($ujian, $request);
+        abort_if($ujian->status === 'selesai', 403, 'Ujian sudah selesai, status token tidak bisa diubah lagi.');
         $ujian->update(['token_aktif' => ! $ujian->token_aktif]);
         return back()->with('success', 'Status token diperbarui.');
     }

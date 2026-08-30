@@ -79,39 +79,43 @@
                     <h3 class="font-bold text-slate-900">Informasi Utama Paket Ujian</h3>
                 </div>
                 <div class="p-6">
-                    <dl class="grid gap-5 sm:grid-cols-2">
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Nama Ujian</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->nama }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Mata Pelajaran</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->mataPelajaran?->nama ?? '-' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Guru Pembuat (PIC)</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->guru?->nama ?? '-' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Target Kelas</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->kelasData?->nama_kelas ?? $exam->kelas ?? '-' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Jadwal Pelaksanaan</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->tanggal_mulai?->format('d/m/Y H:i') ?? '-' }} s/d {{ $exam->tanggal_selesai?->format('d/m/Y H:i') ?? '-' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Ruangan & Pengawas</dt>
-                            <dd class="mt-1 text-sm font-semibold text-slate-900">{{ $exam->ruangan ?: '-' }} (Pengawas: {{ $exam->guruPengawas?->nama ?? 'Belum ada' }})</dd>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <dt class="text-xs font-bold uppercase tracking-wider text-slate-400">Deskripsi / Petunjuk Pengerjaan</dt>
-                            <dd class="mt-1 text-sm text-slate-700 whitespace-pre-line leading-relaxed">{{ $exam->deskripsi ?: 'Tidak ada deskripsi tambahan.' }}</dd>
-                        </div>
-                    </dl>
+                    <div class="overflow-hidden rounded-xl border border-slate-200">
+                        <table class="min-w-full text-left text-sm">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="w-1/3 bg-slate-50 px-4 py-3 font-semibold text-slate-600">Nama Ujian</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->nama }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600">Mata Pelajaran</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->mataPelajaran?->nama ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600">Guru Pembuat (PIC)</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->guru?->nama ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600">Target Kelas</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->kelasData?->nama_kelas ?? $exam->kelas ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600">Jadwal Pelaksanaan</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->tanggal_mulai?->format('d/m/Y H:i') ?? '-' }} s/d {{ $exam->tanggal_selesai?->format('d/m/Y H:i') ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600">Ruangan & Pengawas</td>
+                                    <td class="px-4 py-3 text-slate-900">{{ $exam->ruangan ?: '-' }} (Pengawas: {{ $exam->guruPengawas?->nama ?? 'Belum ada' }})</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-slate-50 px-4 py-3 font-semibold text-slate-600 align-top">Deskripsi / Petunjuk</td>
+                                    <td class="px-4 py-3 whitespace-pre-line leading-relaxed text-slate-700">{{ $exam->deskripsi ?: 'Tidak ada deskripsi tambahan.' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
         </div>
     </div>
-</x-app-layout>
+</x-app-layout>

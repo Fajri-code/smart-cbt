@@ -262,62 +262,6 @@
     </div>
 
 
-    {{-- Komponen Soal --}}
-    <div class="md:col-span-2">
-
-        @php
-            $selectedComponents = old(
-                'komponen_soal',
-                $exam?->komponen_soal
-                ?? match ($exam?->jenis) {
-                    'pg' => ['pg'],
-                    'essay' => ['essay_1', 'essay_2'],
-                    default => [],
-                }
-            );
-        @endphp
-
-        <p class="mb-2 block text-sm font-medium text-slate-700">
-            Komponen Soal
-        </p>
-
-        <div class="grid gap-3 sm:grid-cols-3">
-
-            @foreach ([
-                'pg' => 'Pilihan Ganda',
-                'essay_1' => 'Essay Bagian 1',
-                'essay_2' => 'Essay Bagian 2'
-            ] as $value => $label)
-
-                <label class="flex items-center gap-3 rounded-md border border-slate-200 p-3 text-sm text-slate-700">
-
-                    <input
-                        type="checkbox"
-                        name="komponen_soal[]"
-                        value="{{ $value }}"
-                        class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                        @checked(in_array($value, $selectedComponents, true))
-                    >
-
-                    {{ $label }}
-
-                </label>
-
-            @endforeach
-
-        </div>
-
-        @error('komponen_soal')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
-
-        @error('komponen_soal.*')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
-
-    </div>
-
-
     {{-- Durasi --}}
     <div>
 

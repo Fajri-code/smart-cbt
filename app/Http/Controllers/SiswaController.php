@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Kelas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class SiswaController extends Controller
@@ -39,7 +40,7 @@ class SiswaController extends Controller
             $user = User::create([
                 'name' => $request->string('nama')->toString(),
                 'email' => $request->string('email')->toString(),
-                'password' => $request->string('password')->toString(),
+                'password' => Hash::make($request->string('password')->toString()),
                 'role' => 'siswa',
             ]);
 
@@ -92,7 +93,7 @@ class SiswaController extends Controller
             ];
 
             if ($request->filled('password')) {
-                $userData['password'] = $request->string('password')->toString();
+                $userData['password'] = Hash::make($request->string('password')->toString());
             }
 
             $siswa->user->update($userData);

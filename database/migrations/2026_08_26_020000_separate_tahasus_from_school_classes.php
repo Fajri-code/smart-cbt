@@ -7,6 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement('ALTER TABLE siswas ALTER COLUMN kelas DROP NOT NULL');
 
         DB::table('siswas')->where('program_tahasus', true)->update([

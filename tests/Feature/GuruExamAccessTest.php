@@ -4,6 +4,7 @@ use App\Models\Exam;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
+use App\Models\Question;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -65,4 +66,34 @@ test('guru dashboard counts only assigned exams', function () {
         ->get(route('guru.dashboard'))
         ->assertOk()
         ->assertViewHas('stats', fn (array $stats): bool => $stats['total'] === 1 && $stats['aktif'] === 1 && $stats['selesai'] === 0);
+});
+
+test('guru bank list includes questions already created for their exams', function () {
+    [$user, , $exam] = makeGuruWithExam();
+
+    $exam->questions()->create([
+        'tipe' => 'pg',
+        'pertanyaan' => 'Berapakah 2 + 2?',
+        'opsi_a' => '3',
+        'opsi_b' => '4',
+        'opsi_c' => '5',
+        'opsi_d' => '6',
+        'opsi_e' => '7',
+        'kunci' => 'B',
+        'bobot' => 1,
+        'urutan' => 1,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('guru.bank.index'));
+    $bank = $user->fresh()->guru->questionBanks()->first();
+
+    expect($bank)->not->toBeNull()
+        ->and($bank->questions()->count())->toBe(1);
+
+    $response->assertOk()->assertSee($exam->nama);
+
+    $this->actingAs($user)
+        ->get(route('guru.bank.show', $bank))
+        ->assertOk()
+        ->assertSee('Berapakah 2 + 2?');
 });

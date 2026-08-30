@@ -284,26 +284,6 @@
                         </a>
 
 
-                        {{-- Token Ujian --}}
-                        <a
-                            href="{{ route('guru.token.index') }}"
-                            class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition
-                            {{ request()->routeIs('guru.token.*')
-                                ? 'bg-white/10 font-semibold text-white'
-                                : 'text-slate-300 hover:bg-white/10 hover:text-white' }}"
-                            @click="open = false"
-                        >
-                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                    d="M8 10V7a4 4 0 1 1 8 0v3m-9 0h10a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                    d="M12 14v2" />
-                            </svg>
-
-                            <span>Token Ujian</span>
-                        </a>
-
-
                         {{-- Bank Soal --}}
                         <a
                             href="{{ route('guru.bank.index') }}"

@@ -85,13 +85,25 @@ class SiswaExamController extends Controller
             return back()->withErrors(['token' => 'Token ujian tidak valid.'])->withInput();
         }
 
-        $attempt = ExamAttempt::firstOrCreate(
-            ['exam_id' => $ujian->id, 'siswa_id' => $siswa->id],
-            ['started_at' => $now, 'status' => 'in_progress']
-        );
+        $attempt = $this->attempt($ujian, $siswa);
+        
+        if ($attempt && $attempt->token_used === $token) {
+            return back()->withErrors(['token' => 'Token ini sudah pernah dipakai. Tunggu token baru dari guru.'])->withInput();
+        }
 
-        if ($attempt->status !== 'in_progress') {
-            return back()->with('error', 'Ujian ini sudah selesai dikerjakan.');
+        if (! $attempt) {
+            $attempt = ExamAttempt::create([
+                'exam_id' => $ujian->id,
+                'siswa_id' => $siswa->id,
+                'started_at' => $now,
+                'status' => 'in_progress',
+                'token_used' => $token,
+            ]);
+        } else {
+            if ($attempt->status !== 'in_progress') {
+                return back()->with('error', 'Ujian ini sudah selesai dikerjakan.');
+            }
+            $attempt->update(['token_used' => $token]);
         }
 
         $request->session()->put($this->tokenSessionKey($ujian), $attempt->id);
@@ -254,6 +266,7 @@ class SiswaExamController extends Controller
 
     private function status(Exam $exam, ?ExamAttempt $attempt): string
     {
+        if ($exam->status !== 'aktif') return 'Tidak Tersedia';
         if ($attempt && $attempt->status !== 'in_progress') return 'Sudah Dikerjakan';
         if ($exam->tanggal_mulai?->gt(now())) return 'Belum Dimulai';
         if ($exam->tanggal_selesai && $exam->tanggal_selesai->lte(now())) return 'Sudah Selesai';

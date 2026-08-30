@@ -16,6 +16,7 @@ class ExamAttempt extends Model
         'submitted_at',
         'status',
         'nilai_akhir',
+        'token_used',
     ];
 
     protected $casts = [
