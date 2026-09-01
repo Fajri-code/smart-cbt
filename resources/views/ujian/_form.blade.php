@@ -28,6 +28,50 @@
     </div>
 
 
+    {{-- Tahun Ajaran --}}
+    <div>
+        <label for="tahun_ajaran" class="mb-2 block text-sm font-medium text-slate-700">
+            Tahun Ajaran
+        </label>
+
+        <input
+            id="tahun_ajaran"
+            name="tahun_ajaran"
+            type="text"
+            value="{{ old('tahun_ajaran', $exam->tahun_ajaran ?? '') }}"
+            class="w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="2026/2027"
+            maxlength="20"
+        >
+
+        @error('tahun_ajaran')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+
+    {{-- Semester --}}
+    <div>
+        <label for="semester" class="mb-2 block text-sm font-medium text-slate-700">
+            Semester
+        </label>
+
+        <select
+            id="semester"
+            name="semester"
+            class="w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+        >
+            <option value="">Pilih semester</option>
+            <option value="ganjil" @selected(old('semester', $exam->semester ?? '') === 'ganjil')>Ganjil</option>
+            <option value="genap" @selected(old('semester', $exam->semester ?? '') === 'genap')>Genap</option>
+        </select>
+
+        @error('semester')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+
     {{-- Mata Pelajaran --}}
     <div>
         <label for="mata_pelajaran_id" class="mb-2 block text-sm font-medium text-slate-700">

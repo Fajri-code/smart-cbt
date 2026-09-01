@@ -15,6 +15,8 @@ class Exam extends Model
         'guru_pengawas_id',
         'mata_pelajaran_id',
         'nama',
+        'tahun_ajaran',
+        'semester',
         'jenis',
         'kelas',
         'kelas_id',

@@ -24,7 +24,6 @@
                     <span id="save-status-text">--</span>
                     <span id="save-status-icon" class="h-4 w-4"></span>
                 </div>
-                <div id="connection-status" class="text-center text-[10px] font-semibold text-emerald-600">Online</div>
                 <!-- Timer -->
                 <div class="rounded-xl bg-blue-50 px-4 py-2 text-center">
                     <span class="block text-[10px] font-bold uppercase tracking-wider text-blue-600">Sisa waktu</span>
@@ -113,15 +112,6 @@
 
         <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
-            <div class="mt-4">
-                <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
-                    <span>Progress jawaban</span>
-                    <span id="answer-progress-text">0/{{ $exam->questions->count() }}</span>
-                </div>
-                <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div id="answer-progress-bar" class="h-full w-0 rounded-full bg-blue-600 transition-all"></div>
-                </div>
-            </div>
             <div class="mt-4 grid grid-cols-5 gap-2">
                 @foreach ($exam->questions as $question)
                     <button type="button" 
@@ -144,19 +134,17 @@
     <script>
         /**
          * ============================================================================
-         * BATCH ANSWER SAVING SYSTEM WITH LOCALSTORAGE PERSISTENCE
+         * BATCH ANSWER SAVING SYSTEM
          * ============================================================================
          * 
          * FITUR:
-         * - Simpan pending answers ke localStorage sebagai persistent queue
          * - Batch save setiap 5 jawaban yang berubah
+         * - Pending queue di browser
          * - Retry mechanism untuk failed requests
-         * - Hapus hanya batch sukses dari localStorage
          * - Visual indicator status
          * - Prevent submit sebelum pending selesai
          * - Handle page leave & time up dengan pending answers
          * - Prevent duplikasi dengan update-or-create backend
-         * - Resume ujian dengan merge localStorage + database
          */
 
         // ============================================================================
@@ -171,18 +159,11 @@
             RETRY_DELAY: 1000,                // Delay 1 detik sebelum retry
         };
 
-        // Get unique storage key untuk exam attempt
-        const ATTEMPT_ID = '{{ $attempt->id }}';
-        const STORAGE_KEY = `cbt_pending_answers_${ATTEMPT_ID}`;
-
         // State tracking
         const state = {
-            // Pending answers di memory (sync dengan localStorage)
-            // Structure: { questionId: answer, ... }
-            pendingAnswers: {},
-            
-            changedQuestions: new Set(),      // Set<questionId> - soal yang berubah, digunakan untuk batch logic
-            savedAnswers: new Map(),          // Map<questionId, jawaban> - jawaban yang sudah tersimpan di server
+            pendingAnswers: new Map(),        // Map<questionId, jawaban> - jawaban yang belum tersimpan
+            changedQuestions: new Set(),      // Set<questionId> - soal yang berubah
+            savedAnswers: new Map(),          // Map<questionId, jawaban> - jawaban yang sudah tersimpan
             isSaving: false,                  // Prevent concurrent saves
             savingError: null,                // Error dari save terakhir
             retryCount: 0,                    // Jumlah retry attempt
@@ -206,9 +187,6 @@
             pendingIndicator: document.getElementById('pending-indicator'),
             pendingCountEl: document.getElementById('pending-count'),
             pendingCountNum: document.getElementById('pending-count-num'),
-            connectionStatus: document.getElementById('connection-status'),
-            answerProgressText: document.getElementById('answer-progress-text'),
-            answerProgressBar: document.getElementById('answer-progress-bar'),
         };
 
         let current = 1;
@@ -218,60 +196,6 @@
         let countdownTimer = null;
 
         // ============================================================================
-        // LOCALSTORAGE MANAGEMENT
-        // ============================================================================
-
-        /**
-         * Baca pending answers dari localStorage
-         */
-        function getPendingAnswersFromStorage() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                return stored ? JSON.parse(stored) : {};
-            } catch (error) {
-                console.error('Error reading from localStorage:', error);
-                return {};
-            }
-        }
-
-        /**
-         * Simpan pending answers ke localStorage
-         */
-        function savePendingAnswersToStorage(answers) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
-            } catch (error) {
-                console.error('Error writing to localStorage:', error);
-            }
-        }
-
-        /**
-         * Hapus answers tertentu dari localStorage (setelah batch berhasil disimpan)
-         */
-        function removeAnswersFromStorage(questionIds) {
-            try {
-                const pending = getPendingAnswersFromStorage();
-                questionIds.forEach(qId => {
-                    delete pending[String(qId)];
-                });
-                savePendingAnswersToStorage(pending);
-            } catch (error) {
-                console.error('Error removing from localStorage:', error);
-            }
-        }
-
-        /**
-         * Hapus semua pending answers dari localStorage (setelah submit berhasil)
-         */
-        function clearPendingAnswersStorage() {
-            try {
-                localStorage.removeItem(STORAGE_KEY);
-            } catch (error) {
-                console.error('Error clearing localStorage:', error);
-            }
-        }
-
-        // ============================================================================
         // UTILITY FUNCTIONS
         // ============================================================================
 
@@ -279,8 +203,7 @@
          * Update visual indicator untuk status penyimpanan
          */
         function updateSaveStatus() {
-            // Hitung jumlah pending dari object
-            const pendingCount = Object.keys(state.pendingAnswers).length;
+            const pendingCount = state.pendingAnswers.size;
             
             if (state.isSaving) {
                 elements.saveStatus.className = 'flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold bg-amber-50 text-amber-700';
@@ -310,31 +233,6 @@
 
             // Update hidden indicator
             elements.pendingIndicator.value = pendingCount;
-            updateAnswerProgress();
-        }
-
-        function updateAnswerProgress() {
-            const answers = getCurrentAnswers();
-            const answeredCount = Object.values(answers).filter(answer => String(answer).trim() !== '').length;
-            const totalQuestions = elements.panels.length;
-            const percentage = totalQuestions ? (answeredCount / totalQuestions) * 100 : 0;
-
-            elements.answerProgressText.textContent = `${answeredCount}/${totalQuestions}`;
-            elements.answerProgressBar.style.width = `${percentage}%`;
-            elements.numbers.forEach(button => {
-                const questionId = button.dataset.questionId;
-                const isAnswered = String(answers[questionId] ?? '').trim() !== '';
-                button.classList.toggle('border-emerald-500', isAnswered);
-                button.classList.toggle('bg-emerald-50', isAnswered);
-                button.classList.toggle('text-emerald-700', isAnswered);
-            });
-        }
-
-        function updateConnectionStatus() {
-            elements.connectionStatus.textContent = navigator.onLine ? 'Online' : 'Offline - jawaban tetap tersimpan di perangkat';
-            elements.connectionStatus.className = navigator.onLine
-                ? 'text-center text-[10px] font-semibold text-emerald-600'
-                : 'text-center text-[10px] font-semibold text-amber-600';
         }
 
         /**
@@ -355,24 +253,21 @@
         }
 
         /**
-         * Track perubahan jawaban dan update pending queue + localStorage
+         * Track perubahan jawaban dan update pending queue
          */
         function trackAnswerChange(questionId, newAnswer) {
             const questionIdStr = String(questionId);
             const savedAnswer = state.savedAnswers.get(questionIdStr);
             
-            // Jika jawaban sama dengan yang sudah tersimpan di server, hapus dari pending
+            // Jika jawaban sama dengan yang sudah tersimpan, hapus dari pending
             if (savedAnswer === newAnswer) {
-                delete state.pendingAnswers[questionIdStr];
+                state.pendingAnswers.delete(questionIdStr);
                 state.changedQuestions.delete(questionIdStr);
             } else {
                 // Jika berbeda, masukkan ke pending
-                state.pendingAnswers[questionIdStr] = newAnswer;
+                state.pendingAnswers.set(questionIdStr, newAnswer);
                 state.changedQuestions.add(questionIdStr);
             }
-            
-            // Sync dengan localStorage
-            savePendingAnswersToStorage(state.pendingAnswers);
             
             updateSaveStatus();
         }
@@ -384,7 +279,6 @@
         /**
          * Save batch answers ke backend
          * Retry otomatis jika gagal
-         * Hapus dari localStorage HANYA jika berhasil
          */
         async function saveBatchAnswers(answers, attempt = 0) {
             if (state.isSaving) {
@@ -418,17 +312,12 @@
                 const data = await response.json();
                 
                 if (data.saved) {
-                    // Backend berhasil - mark answers sebagai tersimpan
+                    // Mark answers sebagai tersimpan
                     Object.entries(answers).forEach(([qId, answer]) => {
                         state.savedAnswers.set(String(qId), answer);
+                        state.pendingAnswers.delete(String(qId));
                         state.changedQuestions.delete(String(qId));
                     });
-
-                    // HAPUS dari pending di memory dan localStorage
-                    Object.keys(answers).forEach(qId => {
-                        delete state.pendingAnswers[String(qId)];
-                    });
-                    savePendingAnswersToStorage(state.pendingAnswers);
 
                     state.savingError = null;
                     state.retryCount = 0;
@@ -445,9 +334,8 @@
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
                     return saveBatchAnswers(answers, attempt + 1);
                 } else {
-                    // Max retries reached - JANGAN hapus pending answers
+                    // Max retries reached, keep answers in pending untuk manual retry
                     console.error('Max retries reached, answers kept in pending');
-                    // Pending answers tetap tersimpan di localStorage untuk retry manual/otomatis kemudian
                 }
             } finally {
                 state.isSaving = false;
@@ -465,8 +353,7 @@
                 const batchAnswers = {};
                 
                 itemsToSave.forEach(qId => {
-                    // Get dari state.pendingAnswers object
-                    batchAnswers[qId] = state.pendingAnswers[String(qId)];
+                    batchAnswers[qId] = state.pendingAnswers.get(qId);
                 });
 
                 await saveBatchAnswers(batchAnswers);
@@ -477,12 +364,14 @@
          * Save semua pending answers (digunakan saat submit & time up)
          */
         async function saveAllPendingAnswers() {
-            if (Object.keys(state.pendingAnswers).length === 0) {
+            if (state.pendingAnswers.size === 0) {
                 return Promise.resolve();
             }
 
-            // Copy semua pending answers
-            const allAnswers = { ...state.pendingAnswers };
+            const allAnswers = {};
+            state.pendingAnswers.forEach((answer, qId) => {
+                allAnswers[qId] = answer;
+            });
 
             return saveBatchAnswers(allAnswers);
         }
@@ -542,12 +431,9 @@
 
                 // Jika masih ada pending (setelah retries), tetap submit
                 // Backend akan menggunakan jawaban yang sudah tersimpan
-                if (Object.keys(state.pendingAnswers).length > 0) {
+                if (state.pendingAnswers.size > 0) {
                     console.warn('Ada jawaban yang masih pending, tetap submit');
                 }
-
-                // Clear localStorage sebelum submit
-                clearPendingAnswersStorage();
 
                 // Submit form
                 elements.form.submit();
@@ -584,9 +470,6 @@
                 console.error('Error saving pending on time up:', error);
             }
 
-            // Clear localStorage sebelum auto submit
-            clearPendingAnswersStorage();
-
             // Auto submit form
             elements.form.submit();
         }
@@ -603,13 +486,20 @@
                 return; // Sudah dalam proses submit
             }
 
-            const pendingCount = Object.keys(state.pendingAnswers).length;
-            if (pendingCount > 0) {
+            if (state.pendingAnswers.size > 0) {
                 state.pageUnloading = true;
                 
-                // Use fetch dengan keepalive untuk reliability pada page unload
-                const answers = { ...state.pendingAnswers };
+                // Use sendBeacon untuk reliability pada page unload
+                const answers = {};
+                state.pendingAnswers.forEach((answer, qId) => {
+                    answers[qId] = answer;
+                });
 
+                const formData = new FormData();
+                formData.append('answers', JSON.stringify(answers));
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+                // Try fetch dengan keepalive (lebih reliable dari sendBeacon)
                 fetch('{{ route('siswa.ujian.answers', $exam) }}', {
                     method: 'POST',
                     keepalive: true,
@@ -633,11 +523,10 @@
         });
 
         /**
-         * Prevent unload dialog jika ada pending
+         * Prevent unload dialog jika ada pending (optional)
          */
         window.addEventListener('beforeunload', (e) => {
-            const pendingCount = Object.keys(state.pendingAnswers).length;
-            if (pendingCount > 0 && !state.isSubmitting && !state.pageUnloading) {
+            if (state.pendingAnswers.size > 0 && !state.isSubmitting && !state.pageUnloading) {
                 e.preventDefault();
                 e.returnValue = 'Ada jawaban yang belum tersimpan. Apakah Anda yakin ingin meninggalkan halaman?';
             }
@@ -647,31 +536,12 @@
         // INITIALIZE
         // ============================================================================
 
-        /**
-         * Initialize dengan load dari localStorage dan database
-         */
         function initialize() {
-            // Load jawaban dari database yang sudah tersimpan
-            const dbAnswers = getCurrentAnswers();
-            Object.entries(dbAnswers).forEach(([qId, answer]) => {
-                if (answer) {  // Hanya jika ada jawaban
-                    state.savedAnswers.set(String(qId), answer);
-                }
+            // Load initial answers sebagai "saved"
+            const initialAnswers = getCurrentAnswers();
+            Object.entries(initialAnswers).forEach(([qId, answer]) => {
+                state.savedAnswers.set(String(qId), answer);
             });
-
-            // Load pending answers dari localStorage (jawaban yang belum berhasil disimpan)
-            const storedPending = getPendingAnswersFromStorage();
-            state.pendingAnswers = { ...storedPending };
-
-            // Reconstruct changedQuestions dari pending answers
-            Object.keys(storedPending).forEach(qId => {
-                state.changedQuestions.add(qId);
-            });
-
-            console.log('Initialized state:');
-            console.log('- Saved answers from DB:', state.savedAnswers.size);
-            console.log('- Pending answers from localStorage:', Object.keys(state.pendingAnswers).length);
-            console.log('- Changed questions:', state.changedQuestions.size);
 
             // Set deadline
             const deadlineStr = '{{ $attempt->started_at->copy()->addMinutes($exam->durasi_menit)->min($exam->tanggal_selesai ?? $attempt->started_at->copy()->addMinutes($exam->durasi_menit))->toIso8601String() }}';
@@ -701,7 +571,6 @@
                     }
                     
                     trackAnswerChange(questionId, currentValue);
-                    updateAnswerProgress();
                     queueSave();
                 });
 
@@ -717,16 +586,12 @@
                     }
                     
                     trackAnswerChange(questionId, currentValue);
-                    updateAnswerProgress();
                     queueSave();
                 });
             });
 
             // Periodic fallback save (untuk case radio button yang tidak trigger input)
             periodicSaveTimer = setInterval(checkAndSaveBatch, CONFIG.PERIODIC_INTERVAL);
-            window.addEventListener('online', updateConnectionStatus);
-            window.addEventListener('offline', updateConnectionStatus);
-            updateConnectionStatus();
 
             // Countdown timer
             countdownTimer = setInterval(() => {

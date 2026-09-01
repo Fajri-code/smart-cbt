@@ -10,8 +10,11 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        User::where('email', 'admin@smart.sch.id')
+            ->update(['email' => 'admincbt@sch.id']);
+
         User::updateOrCreate(
-            ['email' => 'admin@smart.sch.id'],
+            ['email' => 'admincbt@sch.id'],
             [
                 'name' => 'Administrator SMART CBT',
                 'password' => Hash::make('12345678'),

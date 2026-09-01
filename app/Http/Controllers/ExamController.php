@@ -229,15 +229,12 @@ class ExamController extends Controller
             $data['durasi_menit']
         );
 
-        $data['jenis'] = $this->legacyType(
-            $data['komponen_soal']
-        );
-
         /**
          * Komponen soal ditentukan di area guru saat pengelolaan soal.
          * Admin tidak lagi mengubah jenis komponen soal pada form pembuatan/edisi ujian.
          */
         $data['komponen_soal'] = $ujian->komponen_soal ?: ['pg', 'essay_1', 'essay_2'];
+        $data['jenis'] = $this->legacyType($data['komponen_soal']);
 
         /**
          * Kalau tanggal selesai sudah lewat,
@@ -359,6 +356,17 @@ class ExamController extends Controller
                 'required',
                 'string',
                 'max:255',
+            ],
+
+            'tahun_ajaran' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+
+            'semester' => [
+                'nullable',
+                'in:ganjil,genap',
             ],
 
             'mata_pelajaran_id' => [

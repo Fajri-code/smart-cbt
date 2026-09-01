@@ -30,6 +30,36 @@ class SiswaExamController extends Controller
         return view('siswa.exams.index', compact('exams', 'siswa'));
     }
 
+    public function history(Request $request): View
+    {
+        $siswa = $this->siswa($request);
+        $exams = $this->availableExams($siswa)
+            ->whereHas('examAttempts', fn ($query) => $query->where('siswa_id', $siswa->id))
+            ->get();
+
+        return view('siswa.exams.history', compact('exams', 'siswa'));
+    }
+
+    public function results(Request $request): View
+    {
+        $siswa = $this->siswa($request);
+        $exams = $this->availableExams($siswa)
+            ->whereHas('examAttempts', function ($query) use ($siswa): void {
+                $query->where('siswa_id', $siswa->id)
+                    ->where('status', '!=', 'in_progress');
+            })
+            ->get();
+        $scoredExams = $exams->filter(fn (Exam $exam) => $exam->examAttempts->first()?->nilai_akhir !== null);
+
+        return view('siswa.exams.results', [
+            'exams' => $exams,
+            'siswa' => $siswa,
+            'totalResults' => $exams->count(),
+            'averageScore' => $scoredExams->avg(fn (Exam $exam) => $exam->examAttempts->first()->nilai_akhir),
+            'highestScore' => $scoredExams->max(fn (Exam $exam) => $exam->examAttempts->first()->nilai_akhir),
+        ]);
+    }
+
     public function show(Request $request, Exam $ujian): View
     {
         $siswa = $this->siswa($request);
