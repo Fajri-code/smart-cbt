@@ -389,4 +389,75 @@ class QuestionBankController extends Controller
             }
         }
     }
+
+    public function downloadTemplate(QuestionBank $bankSoal, Request $request)
+    {
+        $this->owned($bankSoal, $request);
+
+        $templateData = [
+            [
+                'Tipe' => 'pg',
+                'Pertanyaan' => 'Apa ibukota Indonesia?',
+                'Opsi A' => 'Jakarta',
+                'Opsi B' => 'Bandung',
+                'Opsi C' => 'Surabaya',
+                'Opsi D' => 'Semarang',
+                'Opsi E' => 'Medan',
+                'Kunci' => 'A',
+                'Bobot' => 1,
+            ],
+            [
+                'Tipe' => 'essay_1',
+                'Pertanyaan' => 'Jelaskan mengapa bumi itu bulat.',
+                'Opsi A' => '',
+                'Opsi B' => '',
+                'Opsi C' => '',
+                'Opsi D' => '',
+                'Opsi E' => '',
+                'Kunci' => '',
+                'Bobot' => 5,
+            ]
+        ];
+
+        return (new \Rap2hpoutre\FastExcel\FastExcel(collect($templateData)))
+            ->download('template_import_soal.xlsx');
+    }
+
+    public function importSoal(QuestionBank $bankSoal, Request $request)
+    {
+        $this->owned($bankSoal, $request);
+        $this->guardEditableBank($bankSoal);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls'
+        ]);
+
+        $collection = (new \Rap2hpoutre\FastExcel\FastExcel)->import($request->file('file'));
+
+        $count = 0;
+        foreach ($collection as $row) {
+            if (empty($row['Pertanyaan'])) continue;
+
+            $tipe = strtolower($row['Tipe'] ?? 'pg');
+            if (!in_array($tipe, ['pg', 'essay_1', 'essay_2'])) {
+                $tipe = 'pg';
+            }
+
+            BankQuestion::create([
+                'question_bank_id' => $bankSoal->id,
+                'tipe' => $tipe,
+                'pertanyaan' => $row['Pertanyaan'],
+                'opsi_a' => $row['Opsi A'] ?? null,
+                'opsi_b' => $row['Opsi B'] ?? null,
+                'opsi_c' => $row['Opsi C'] ?? null,
+                'opsi_d' => $row['Opsi D'] ?? null,
+                'opsi_e' => $row['Opsi E'] ?? null,
+                'kunci' => $row['Kunci'] ?? null,
+                'bobot' => is_numeric($row['Bobot'] ?? null) ? $row['Bobot'] : 1,
+            ]);
+            $count++;
+        }
+
+        return back()->with('success', "$count soal berhasil diimport dari Excel.");
+    }
 }

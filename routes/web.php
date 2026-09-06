@@ -14,6 +14,7 @@ use App\Http\Controllers\QuestionBankController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\GuruMonitoringController;
 use App\Http\Controllers\SiswaExamController;
+use App\Http\Controllers\ExamCardController;
 
 use App\Models\Siswa;
 use App\Models\Guru;
@@ -226,6 +227,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    Route::get('/ujian/{ujian}/export-soal', [\App\Http\Controllers\ExportController::class, 'exportSoalUjian'])
+        ->name('ujian.export-soal');
+
     Route::resource('ujian', ExamController::class);
 
 
@@ -235,8 +239,29 @@ Route::middleware(['auth', 'admin'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    Route::get('/hasil-ujian/export/kelas', [\App\Http\Controllers\ExportController::class, 'exportHasilKelas'])
+        ->name('hasil.export.kelas');
+        
+    Route::get('/hasil-ujian/export/filter', [\App\Http\Controllers\ExportController::class, 'exportHasilFilter'])
+        ->name('hasil.export.filter');
+        
+    Route::get('/hasil-ujian/export/siswa/{siswa}', [\App\Http\Controllers\ExportController::class, 'exportHasilSiswa'])
+        ->name('hasil.export.siswa');
+
     Route::get('/hasil-ujian', [ResultController::class, 'index'])
         ->name('hasil.index');
+        
+    Route::get('/hasil-ujian/{attempt}', [ResultController::class, 'show'])
+        ->name('hasil.show');
+
+    Route::get('/kartu-ujian', [ExamCardController::class, 'index'])
+        ->name('kartu-ujian.index');
+
+    Route::match(['get', 'post'], '/kartu-ujian/preview', [ExamCardController::class, 'preview'])
+        ->name('kartu-ujian.preview');
+
+    Route::match(['get', 'post'], '/kartu-ujian/pdf', [ExamCardController::class, 'pdf'])
+        ->name('kartu-ujian.pdf');
 });
 
 
@@ -273,6 +298,9 @@ Route::middleware(['auth', 'guru'])
         Route::get('/ujian/{ujian}', [GuruExamController::class, 'show'])
             ->name('ujian.show');
 
+        Route::get('/ujian/{ujian}/export-soal', [\App\Http\Controllers\ExportController::class, 'exportSoalUjian'])
+            ->name('ujian.export-soal');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -288,6 +316,15 @@ Route::middleware(['auth', 'guru'])
 
         Route::get('/bank-soal/{bankSoal}', [QuestionBankController::class, 'show'])
             ->name('bank.show');
+
+        Route::get('/bank-soal/{bankSoal}/export-soal', [\App\Http\Controllers\ExportController::class, 'exportBankSoal'])
+            ->name('bank.export-soal');
+
+        Route::get('/bank-soal/{bankSoal}/import-template', [QuestionBankController::class, 'downloadTemplate'])
+            ->name('bank.import-template');
+
+        Route::post('/bank-soal/{bankSoal}/import', [QuestionBankController::class, 'importSoal'])
+            ->name('bank.import');
 
         Route::post('/bank-soal/{bankSoal}/soal', [QuestionBankController::class, 'storeQuestion'])
             ->name('bank.question.store');
@@ -347,8 +384,20 @@ Route::middleware(['auth', 'guru'])
         |--------------------------------------------------------------------------
         */
 
+        Route::get('/hasil-ujian/export/kelas', [\App\Http\Controllers\ExportController::class, 'exportHasilKelas'])
+            ->name('hasil.export.kelas');
+            
+        Route::get('/hasil-ujian/export/filter', [\App\Http\Controllers\ExportController::class, 'exportHasilFilter'])
+            ->name('hasil.export.filter');
+            
+        Route::get('/hasil-ujian/export/siswa/{siswa}', [\App\Http\Controllers\ExportController::class, 'exportHasilSiswa'])
+            ->name('hasil.export.siswa');
+
         Route::get('/hasil-ujian', [ResultController::class, 'index'])
             ->name('hasil.index');
+            
+        Route::get('/hasil-ujian/{attempt}', [ResultController::class, 'show'])
+            ->name('hasil.show');
 
 
         /*

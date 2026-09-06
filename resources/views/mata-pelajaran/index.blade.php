@@ -1,13 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Master Data Mata Pelajaran') }}</h2>
-            <a href="{{ route('mata-pelajaran.create') }}" class="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white hover:bg-gray-700">+ Tambah Mata Pelajaran</a>
+        <div>
+            <h2 class="font-semibold text-xl text-slate-900 leading-tight">{{ __('Master Data Mata Pelajaran') }}</h2>
+            <p class="mt-0.5 text-sm text-slate-500">Kelola data mata pelajaran sekolah</p>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <a href="{{ route('mata-pelajaran.create') }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 shadow-sm">
+                    + Tambah Mata Pelajaran
+                </a>
+            </div>
+
             @if (session('success'))
                 <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">{{ session('success') }}</div>
             @endif

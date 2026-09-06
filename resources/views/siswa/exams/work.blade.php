@@ -188,6 +188,7 @@
             retryCount: 0,                    // Jumlah retry attempt
             pageUnloading: false,             // Flag untuk page unload
             isSubmitting: false,              // Flag untuk submit
+            submitStarted: false,             // Mutex global untuk submit/timer race condition
         };
 
         // DOM Elements
@@ -216,6 +217,7 @@
         let periodicSaveTimer = null;
         let deadline = null;
         let countdownTimer = null;
+        let activeSavePromise = null;
 
         // ============================================================================
         // LOCALSTORAGE MANAGEMENT
@@ -387,69 +389,90 @@
          * Hapus dari localStorage HANYA jika berhasil
          */
         async function saveBatchAnswers(answers, attempt = 0) {
-            if (state.isSaving) {
-                return Promise.resolve(); // Prevent concurrent saves
-            }
-
             if (Object.keys(answers).length === 0) {
                 return Promise.resolve(); // No answers to save
+            }
+
+            if (activeSavePromise) {
+                return activeSavePromise.then(() => saveBatchAnswers(answers, attempt));
             }
 
             state.isSaving = true;
             updateSaveStatus();
 
+            const sentAnswers = { ...answers };
+            const savePromise = (async () => {
+                let retryAttempt = attempt;
+
+                while (true) {
+                    try {
+                        const response = await fetch('{{ route('siswa.ujian.answers', $exam) }}', {
+                            method: 'POST',
+                            keepalive: true,
+                            timeout: CONFIG.SAVE_TIMEOUT,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ answers: sentAnswers }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        
+                        if (!data.saved) {
+                            throw new Error('Save response invalid');
+                        }
+
+                        // Backend berhasil - mark answers sebagai tersimpan
+                        Object.entries(sentAnswers).forEach(([qId, answer]) => {
+                            state.savedAnswers.set(String(qId), answer);
+                            const questionId = String(qId);
+                            const hasPendingAnswer = Object.prototype.hasOwnProperty.call(state.pendingAnswers, questionId);
+
+                            if (!hasPendingAnswer || state.pendingAnswers[questionId] === answer) {
+                                delete state.pendingAnswers[questionId];
+                                state.changedQuestions.delete(questionId);
+                            }
+                        });
+
+                        // HAPUS hanya pending yang nilainya masih sama dengan request sukses
+                        savePendingAnswersToStorage(state.pendingAnswers);
+
+                        state.savingError = null;
+                        state.retryCount = 0;
+                        return true;
+                    } catch (error) {
+                        console.error('Save error:', error);
+                        state.savingError = error.message;
+
+                        if (retryAttempt < CONFIG.MAX_RETRIES) {
+                            retryAttempt += 1;
+                            state.retryCount = retryAttempt;
+                            await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * retryAttempt));
+                            continue;
+                        }
+
+                        // Setelah retry maksimum: pending wajib tetap ada.
+                        // Jangan menghapus localStorage dan jangan menyembunyikan error.
+                        console.error('Max retries reached, answers kept in pending');
+                        throw error;
+                    }
+                }
+            })();
+
+            activeSavePromise = savePromise;
+
             try {
-                const response = await fetch('{{ route('siswa.ujian.answers', $exam) }}', {
-                    method: 'POST',
-                    keepalive: true,
-                    timeout: CONFIG.SAVE_TIMEOUT,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ answers }),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.saved) {
-                    // Backend berhasil - mark answers sebagai tersimpan
-                    Object.entries(answers).forEach(([qId, answer]) => {
-                        state.savedAnswers.set(String(qId), answer);
-                        state.changedQuestions.delete(String(qId));
-                    });
-
-                    // HAPUS dari pending di memory dan localStorage
-                    Object.keys(answers).forEach(qId => {
-                        delete state.pendingAnswers[String(qId)];
-                    });
-                    savePendingAnswersToStorage(state.pendingAnswers);
-
-                    state.savingError = null;
-                    state.retryCount = 0;
-                } else {
-                    throw new Error('Save response invalid');
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                state.savingError = error.message;
-
-                // Retry dengan exponential backoff
-                if (attempt < CONFIG.MAX_RETRIES) {
-                    state.retryCount = attempt + 1;
-                    await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
-                    return saveBatchAnswers(answers, attempt + 1);
-                } else {
-                    // Max retries reached - JANGAN hapus pending answers
-                    console.error('Max retries reached, answers kept in pending');
-                    // Pending answers tetap tersimpan di localStorage untuk retry manual/otomatis kemudian
-                }
+                return await savePromise;
             } finally {
+                if (activeSavePromise === savePromise) {
+                    activeSavePromise = null;
+                }
                 state.isSaving = false;
                 updateSaveStatus();
             }
@@ -483,7 +506,6 @@
 
             // Copy semua pending answers
             const allAnswers = { ...state.pendingAnswers };
-
             return saveBatchAnswers(allAnswers);
         }
 
@@ -521,7 +543,14 @@
          * Submit exam dengan memastikan semua pending answers tersimpan dulu
          */
         async function submitExam() {
+            if (state.submitStarted) {
+                return;
+            }
+
+            state.submitStarted = true;
+
             if (!confirm('Kumpulkan ujian sekarang? Jawaban yang sudah dikirim tidak dapat diubah.')) {
+                state.submitStarted = false;
                 return;
             }
 
@@ -534,29 +563,20 @@
             elements.finish.textContent = 'Menyimpan jawaban...';
 
             try {
-                // Save semua pending answers dulu
                 await saveAllPendingAnswers();
 
-                // Wait a bit untuk memastikan state update
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Jika masih ada pending (setelah retries), tetap submit
-                // Backend akan menggunakan jawaban yang sudah tersimpan
-                if (Object.keys(state.pendingAnswers).length > 0) {
-                    console.warn('Ada jawaban yang masih pending, tetap submit');
-                }
-
-                // Clear localStorage sebelum submit
+                // Hanya clear localStorage setelah server mengkonfirmasi save sukses.
                 clearPendingAnswersStorage();
 
-                // Submit form
+                // Submit form hanya setelah semua pending berhasil disimpan.
                 elements.form.submit();
             } catch (error) {
                 console.error('Submit error:', error);
                 elements.finish.disabled = false;
                 elements.finish.textContent = 'Kumpulkan Ujian';
-                alert('Gagal menyimpan jawaban. Silakan coba lagi.');
+                alert('Jawaban belum berhasil disimpan. Silakan cek koneksi Anda dan coba lagi sebelum mengumpulkan ujian.');
                 state.isSubmitting = false;
+                state.submitStarted = false;
             }
         }
 
@@ -564,9 +584,14 @@
          * Auto submit ketika waktu habis
          */
         async function timeExpired() {
-            console.log('Waktu ujian habis');
+            if (state.submitStarted) {
+                return;
+            }
 
+            state.submitStarted = true;
             state.pageUnloading = true;
+
+            console.log('Waktu ujian habis');
 
             // Disable semua interaksi
             elements.previous.disabled = true;
@@ -575,19 +600,15 @@
             elements.answerInputs.forEach(input => input.disabled = true);
 
             try {
-                // Save semua pending answers
                 await saveAllPendingAnswers();
-                
-                // Wait a bit
-                await new Promise(resolve => setTimeout(resolve, 500));
+                clearPendingAnswersStorage();
             } catch (error) {
                 console.error('Error saving pending on time up:', error);
+                // Pending queue tetap dipertahankan di localStorage untuk recovery.
+                // Form tetap disubmit agar backend menetapkan status expired.
             }
 
-            // Clear localStorage sebelum auto submit
-            clearPendingAnswersStorage();
-
-            // Auto submit form
+            // Auto submit form tetap dijalankan agar server menetapkan status expired.
             elements.form.submit();
         }
 
@@ -599,7 +620,7 @@
          * Jika ada pending answers saat page unload, coba save
          */
         window.addEventListener('pagehide', async () => {
-            if (state.isSubmitting || state.pageUnloading) {
+            if (state.submitStarted || state.isSubmitting || state.pageUnloading) {
                 return; // Sudah dalam proses submit
             }
 
@@ -637,7 +658,7 @@
          */
         window.addEventListener('beforeunload', (e) => {
             const pendingCount = Object.keys(state.pendingAnswers).length;
-            if (pendingCount > 0 && !state.isSubmitting && !state.pageUnloading) {
+            if (pendingCount > 0 && !state.submitStarted && !state.isSubmitting && !state.pageUnloading) {
                 e.preventDefault();
                 e.returnValue = 'Ada jawaban yang belum tersimpan. Apakah Anda yakin ingin meninggalkan halaman?';
             }

@@ -1,17 +1,6 @@
-<div x-data="{ open: false, cbtOpen: true }" @keydown.escape.window="open = false">
+<div x-data="{ open: false, cbtOpen: true }" @keydown.escape.window="open = false" @open-sidebar.window="open = true">
 
-    {{-- Mobile Menu Button --}}
-    <button
-        type="button"
-        class="fixed left-4 top-4 z-30 inline-flex items-center justify-center rounded-lg bg-slate-900 p-2.5 text-white shadow-lg transition hover:bg-slate-700 lg:hidden"
-        @click="open = true"
-        aria-label="Buka menu"
-    >
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-    </button>
+
 
     {{-- Mobile Overlay --}}
     <div
@@ -242,6 +231,23 @@
                             </svg>
 
                             <span>Hasil Ujian</span>
+                        </a>
+
+                        {{-- Kartu Ujian --}}
+                        <a
+                            href="{{ route('kartu-ujian.index') }}"
+                            class="flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition
+                            {{ request()->routeIs('kartu-ujian.*')
+                                ? 'bg-white/10 font-semibold text-white'
+                                : 'hover:bg-white/10 hover:text-white' }}"
+                            @click="open = false"
+                        >
+                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v13H6.5A2.5 2.5 0 0 0 4 19.5v-13Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 8h8m-8 3h5m-5 3h8" />
+                            </svg>
+
+                            <span>Kartu Ujian</span>
                         </a>
 
                     </div>

@@ -8,128 +8,163 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800">
-    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white shadow-sm">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-            <div class="min-w-0">
-                <p class="truncate text-xs font-bold uppercase tracking-wide text-blue-600">
-                    {{ $exam->mataPelajaran?->nama }}
-                </p>
-                <h1 class="truncate text-lg font-black text-slate-900">
-                    {{ $exam->nama }}
-                </h1>
-            </div>
-            <div class="shrink-0 flex flex-col items-center gap-2">
-                <!-- Save Status Indicator -->
-                <div id="save-status" class="flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold">
-                    <span id="save-status-text">--</span>
-                    <span id="save-status-icon" class="h-4 w-4"></span>
-                </div>
-                <!-- Timer -->
-                <div class="rounded-xl bg-blue-50 px-4 py-2 text-center">
-                    <span class="block text-[10px] font-bold uppercase tracking-wider text-blue-600">Sisa waktu</span>
-                    <strong id="countdown" class="text-xl font-black tabular-nums text-blue-800">--:--</strong>
-                </div>
-            </div>
-        </div>
-    </header>
+    <div x-data="{ navOpen: false }" @keydown.escape.window="navOpen = false">
+        <header class="sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm">
+            <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+                <!-- Hamburger (Mobile Only) -->
+                <button type="button" 
+                        @click="navOpen = true"
+                        class="inline-flex items-center justify-center rounded-xl bg-blue-50 p-2.5 text-blue-700 hover:bg-blue-100 lg:hidden">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+                </button>
 
-    <main class="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_260px]">
-        <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam) }}" class="space-y-5">
-            @csrf
-            
-            <!-- Hidden input to track pending state -->
-            <input type="hidden" id="pending-indicator" value="0">
-            
-            @foreach ($exam->questions as $question)
-                <section id="question-{{ $loop->iteration }}" 
-                         class="question-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" 
-                         data-question="{{ $loop->iteration }}" 
-                         data-question-id="{{ $question->id }}"
-                         style="display: {{ $loop->first ? 'block' : 'none' }}">
+                <div class="min-w-0 flex-1 lg:flex-none">
+                    <p class="truncate text-[10px] font-bold uppercase tracking-wide text-blue-600 sm:text-xs">
+                        {{ $exam->mataPelajaran?->nama }}
+                    </p>
+                    <h1 class="truncate text-base font-black text-slate-900 sm:text-lg">
+                        {{ $exam->nama }}
+                    </h1>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-3">
+                    <!-- Save Status Indicator -->
+                    <div id="save-status" class="hidden items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold sm:flex">
+                        <span id="save-status-text">--</span>
+                        <span id="save-status-icon" class="h-4 w-4"></span>
+                    </div>
+                    <!-- Timer -->
+                    <div class="rounded-xl bg-blue-50 px-3 py-1.5 text-center sm:px-4 sm:py-2">
+                        <span class="block text-[9px] font-bold uppercase tracking-wider text-blue-600 sm:text-[10px]">Sisa waktu</span>
+                        <strong id="countdown" class="text-lg font-black tabular-nums text-blue-800 sm:text-xl">--:--</strong>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:flex lg:gap-6">
+            <div class="min-w-0 flex-1">
+                <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam) }}" class="space-y-5">
+                    @csrf
                     
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                        <span class="text-sm font-bold text-slate-500">
-                            Soal {{ $loop->iteration }} dari {{ $exam->questions->count() }}
-                        </span>
-                        <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                            {{ strtoupper($question->tipe) }}
-                        </span>
+                    <!-- Hidden input to track pending state -->
+                    <input type="hidden" id="pending-indicator" value="0">
+                    
+                    @foreach ($exam->questions as $question)
+                        <section id="question-{{ $loop->iteration }}" 
+                                 class="question-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" 
+                                 data-question="{{ $loop->iteration }}" 
+                                 data-question-id="{{ $question->id }}"
+                                 style="display: {{ $loop->first ? 'block' : 'none' }}">
+                            
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                                <span class="text-sm font-bold text-slate-500">
+                                    Soal {{ $loop->iteration }} <span class="hidden sm:inline">dari {{ $exam->questions->count() }}</span>
+                                </span>
+                                <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                                    {{ strtoupper($question->tipe) }}
+                                </span>
+                            </div>
+
+                            <div class="prose prose-slate mt-5 max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-xl prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-td:border prose-td:border-slate-200 prose-td:p-2">
+                                <p class="whitespace-pre-line text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-lg">
+                                    {{ $question->pertanyaan }}
+                                </p>
+                            </div>
+
+                            @if ($question->tipe === 'pg')
+                                <div class="mt-7 space-y-3">
+                                    @foreach (['a','b','c','d','e'] as $option)
+                                        @if ($question->{'opsi_'.$option})
+                                            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3.5 transition-colors hover:border-blue-400 hover:bg-blue-50/40 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 sm:p-4">
+                                                <input type="radio" 
+                                                       name="answers[{{ $question->id }}]" 
+                                                       value="{{ strtoupper($option) }}" 
+                                                       class="mt-0.5 h-5 w-5 border-slate-300 text-blue-600 answer-input focus:ring-blue-500"
+                                                       data-question-id="{{ $question->id }}"
+                                                       @checked(($answers[$question->id] ?? '') === strtoupper($option))>
+                                                <span class="text-[15px] sm:text-base">
+                                                    <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>
+                                                    {{ $question->{'opsi_'.$option} }}
+                                                </span>
+                                            </label>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @else
+                                <label class="mt-6 block">
+                                    <span class="mb-2 block text-sm font-semibold text-slate-700">Jawaban Anda</span>
+                                    <textarea name="answers[{{ $question->id }}]" 
+                                              rows="5" 
+                                              class="w-full rounded-xl border-slate-300 answer-input text-[15px] focus:border-blue-500 focus:ring-blue-500 sm:text-base"
+                                              data-question-id="{{ $question->id }}"
+                                              placeholder="Tulis jawaban Anda..."></textarea>
+                                </label>
+                            @endif
+                        </section>
+                    @endforeach
+
+                    <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
+                        <button type="button" id="previous" 
+                                class="flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
+                            Sebelumnya
+                        </button>
+                        <button type="button" id="next" 
+                                class="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
+                            Berikutnya
+                        </button>
+                        <button type="button" id="finish" 
+                                class="hidden w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
+                            Kumpulkan Ujian
+                        </button>
                     </div>
-
-                    <div class="prose prose-slate mt-6 max-w-none">
-                        <p class="whitespace-pre-line text-lg font-semibold leading-relaxed text-slate-900">
-                            {{ $question->pertanyaan }}
-                        </p>
-                    </div>
-
-                    @if ($question->tipe === 'pg')
-                        <div class="mt-7 space-y-3">
-                            @foreach (['a','b','c','d','e'] as $option)
-                                @if ($question->{'opsi_'.$option})
-                                    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 hover:border-blue-400 hover:bg-blue-50/40">
-                                        <input type="radio" 
-                                               name="answers[{{ $question->id }}]" 
-                                               value="{{ strtoupper($option) }}" 
-                                               class="mt-1 text-blue-600 answer-input"
-                                               data-question-id="{{ $question->id }}"
-                                               @checked(($answers[$question->id] ?? '') === strtoupper($option))>
-                                        <span>
-                                            <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>
-                                            {{ $question->{'opsi_'.$option} }}
-                                        </span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                    @else
-                        <label class="mt-6 block">
-                            <span class="mb-2 block text-sm font-semibold text-slate-700">Jawaban Anda</span>
-                            <textarea name="answers[{{ $question->id }}]" 
-                                      rows="5" 
-                                      class="w-full rounded-xl border-slate-300 answer-input"
-                                      data-question-id="{{ $question->id }}"
-                                      placeholder="Tulis jawaban Anda...">{{ $answers[$question->id] ?? '' }}</textarea>
-                        </label>
-                    @endif
-                </section>
-            @endforeach
-
-            <div class="flex items-center justify-between gap-3">
-                <button type="button" id="previous" 
-                        class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40">
-                    Sebelumnya
-                </button>
-                <button type="button" id="next" 
-                        class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">
-                    Berikutnya
-                </button>
-                <button type="button" id="finish" 
-                        class="hidden rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">
-                    Kumpulkan Ujian
-                </button>
+                </form>
             </div>
-        </form>
 
-        <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
-            <div class="mt-4 grid grid-cols-5 gap-2">
-                @foreach ($exam->questions as $question)
-                    <button type="button" 
-                            class="question-number h-9 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:border-blue-400" 
-                            data-target="{{ $loop->iteration }}"
-                            data-question-id="{{ $question->id }}">
-                        {{ $loop->iteration }}
+            <!-- Mobile Overlay -->
+            <div x-show="navOpen" 
+                 x-transition.opacity 
+                 class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+                 @click="navOpen = false"
+                 style="display: none;"></div>
+
+            <!-- Navigation Sidebar / Drawer -->
+            <aside class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 lg:static lg:w-72 lg:translate-x-0 lg:shrink-0 lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:shadow-sm"
+                   :class="{ 'translate-x-0': navOpen }">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 p-5 lg:hidden">
+                    <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
+                    <button type="button" @click="navOpen = false" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
-                @endforeach
-            </div>
-            <p class="mt-5 text-xs leading-relaxed text-slate-500">
-                Jawaban akan tersimpan otomatis setiap 5 soal yang berubah. 
-                <span id="pending-count" class="hidden font-semibold text-amber-600">
-                    Ada <span id="pending-count-num">0</span> jawaban yang belum tersimpan.
-                </span>
-            </p>
-        </aside>
-    </main>
+                </div>
+
+                <div class="hidden border-b border-slate-100 p-5 lg:block">
+                    <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-5">
+                    <div class="grid grid-cols-5 gap-2 sm:grid-cols-5">
+                        @foreach ($exam->questions as $question)
+                            <button type="button" 
+                                    class="question-number h-10 w-full rounded-lg border border-slate-200 text-sm font-bold text-slate-600 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" 
+                                    data-target="{{ $loop->iteration }}"
+                                    data-question-id="{{ $question->id }}">
+                                {{ $loop->iteration }}
+                            </button>
+                        @endforeach
+                    </div>
+                    
+                    <p class="mt-6 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
+                        Jawaban tersimpan otomatis. 
+                        <span id="pending-count" class="hidden mt-1 block font-semibold text-amber-600">
+                            Ada <span id="pending-count-num">0</span> jawaban belum tersimpan.
+                        </span>
+                    </p>
+                </div>
+            </aside>
+        </main>
+    </div>
 
     <script>
         /**

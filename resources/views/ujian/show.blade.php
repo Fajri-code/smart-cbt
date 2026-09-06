@@ -4,48 +4,53 @@
 @endphp
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                {{-- Breadcrumb --}}
-                <nav class="mb-1 flex items-center gap-2 text-xs text-slate-500">
-                    <a href="{{ ($isGuruView ?? false) ? route('guru.dashboard') : route('dashboard') }}" class="hover:text-slate-800">Dashboard</a>
-                    <span>/</span>
-                    <a href="{{ ($isGuruView ?? false) ? route('guru.ujian.index') : route('ujian.index') }}" class="hover:text-slate-800">Ujian</a>
-                    <span>/</span>
-                    <span class="font-medium text-slate-800">Detail Ujian</span>
-                </nav>
-                <h2 class="text-xl font-bold leading-tight text-slate-900">
-                    Detail Ujian: {{ $exam->nama }}
-                </h2>
-                <p class="mt-0.5 text-xs text-slate-500">
-                    Informasi jadwal, konfigurasi paket ujian, penugasan pengawas, dan statistik butir soal.
-                </p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-                @if ($isGuruView ?? false)
-                    <a href="{{ route('guru.soal.index', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        Kelola Soal
-                    </a>
-                    <a href="{{ route('guru.token.show', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                        <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-                        Token
-                    </a>
-                @else
-                    <a href="{{ route('ujian.edit', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700">
-                        Edit Ujian
-                    </a>
-                @endif
-                <a href="{{ ($isGuruView ?? false) ? route('guru.ujian.index') : route('ujian.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                    &larr; Kembali
-                </a>
-            </div>
+        <div>
+            {{-- Breadcrumb --}}
+            <nav class="mb-1 flex items-center gap-2 text-xs text-slate-500">
+                <a href="{{ ($isGuruView ?? false) ? route('guru.dashboard') : route('dashboard') }}" class="hover:text-slate-800">Dashboard</a>
+                <span>/</span>
+                <a href="{{ ($isGuruView ?? false) ? route('guru.ujian.index') : route('ujian.index') }}" class="hover:text-slate-800">Ujian</a>
+                <span>/</span>
+                <span class="font-medium text-slate-800">Detail Ujian</span>
+            </nav>
+            <h2 class="text-xl font-bold leading-tight text-slate-900">
+                Detail Ujian: {{ $exam->nama }}
+            </h2>
+            <p class="mt-0.5 text-xs text-slate-500">
+                Informasi jadwal, konfigurasi paket ujian, penugasan pengawas, dan statistik butir soal.
+            </p>
         </div>
     </x-slot>
 
     <div class="py-8">
         <div class="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+                <div class="flex flex-wrap items-center gap-3">
+                    @if ($isGuruView ?? false)
+                        <a href="{{ route('guru.soal.index', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            Kelola Soal
+                        </a>
+                        <a href="{{ route('guru.token.show', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                            Token
+                        </a>
+                        <a href="{{ route('guru.ujian.export-soal', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-emerald-50 px-5 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 border-emerald-200">
+                            Export Soal
+                        </a>
+                    @else
+                        <a href="{{ route('ujian.edit', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
+                            Edit Ujian
+                        </a>
+                        <a href="{{ route('ujian.export-soal', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-emerald-50 px-5 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 border-emerald-200">
+                            Export Soal
+                        </a>
+                    @endif
+                    <a href="{{ ($isGuruView ?? false) ? route('guru.ujian.index') : route('ujian.index') }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                        &larr; Kembali
+                    </a>
+                </div>
+            </div>
 
             {{-- Stat Cards --}}
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

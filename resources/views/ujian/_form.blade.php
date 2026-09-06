@@ -379,6 +379,25 @@
 
     </div>
 
+    {{-- Acak Soal --}}
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700 invisible">
+            Acak Soal
+        </label>
+        <div class="flex items-center h-10">
+            <input 
+                type="checkbox" 
+                id="acak_soal" 
+                name="acak_soal" 
+                value="1" 
+                class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                @checked(old('acak_soal', $exam->acak_soal ?? false))
+            >
+            <label for="acak_soal" class="ml-2 block text-sm text-slate-700">
+                Acak urutan soal untuk setiap siswa
+            </label>
+        </div>
+    </div>
 
     {{-- Deskripsi --}}
     <div class="md:col-span-2">

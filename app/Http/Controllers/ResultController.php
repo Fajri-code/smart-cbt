@@ -67,4 +67,30 @@ class ResultController extends Controller
             'nilaiTertinggi' => $nilaiTertinggi,
         ]);
     }
+    
+    public function show(Request $request, $id)
+    {
+        abort_unless($request->user()->isAdmin() || $request->user()->isGuru(), 403);
+        
+        $attempt = ExamAttempt::with(['exam.mataPelajaran', 'exam.kelasData', 'siswa.kelasData', 'siswa.user'])->findOrFail($id);
+        
+        if ($request->user()->isGuru()) {
+            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke hasil ujian ini.');
+        }
+        
+        $riwayatUjian = ExamAttempt::with(['exam.mataPelajaran', 'exam.kelasData'])
+            ->where('siswa_id', $attempt->siswa_id)
+            ->when($request->user()->isGuru(), function ($query) use ($request) {
+                // Jika guru yang lihat, hanya tampilkan riwayat ujian yang diawasi/dibuat guru tsb
+                $query->whereHas('exam', fn ($q) => $q->where('guru_id', $request->user()->guru?->id));
+            })
+            ->latest('started_at')
+            ->get();
+            
+        return view('hasil.show', [
+            'attempt' => $attempt,
+            'siswa' => $attempt->siswa,
+            'riwayatUjian' => $riwayatUjian,
+        ]);
+    }
 }

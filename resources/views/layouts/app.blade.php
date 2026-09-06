@@ -89,7 +89,7 @@
     </head>
 
     <body class="font-sans antialiased text-slate-800">
-        <div id="page-loading-indicator" aria-hidden="true"></div>
+
 
         <div class="min-h-screen bg-white">
 
@@ -136,7 +136,6 @@
                         @endisset
 
                     </div>
-
 
                     {{-- KANAN: PROFIL --}}
                     <div

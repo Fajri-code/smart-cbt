@@ -157,6 +157,15 @@ class SiswaExamController extends Controller
         }
 
         $ujian->load(['mataPelajaran', 'questions']);
+        
+        if ($ujian->acak_soal) {
+            $questions = $ujian->questions->all();
+            mt_srand(crc32($attempt->id));
+            shuffle($questions);
+            mt_srand();
+            $ujian->setRelation('questions', collect($questions));
+        }
+
         $answers = $attempt->answers()->pluck('jawaban', 'question_id');
         $exam = $ujian;
 
@@ -185,24 +194,39 @@ class SiswaExamController extends Controller
         abort_unless($attempt?->status === 'in_progress', 403);
         abort_unless($request->session()->get($this->tokenSessionKey($ujian)) === $attempt->id, 403, 'Token ujian tidak valid.');
 
+        if (now()->gte($this->deadline($attempt))) {
+            return response()->json(['message' => 'Waktu ujian sudah berakhir.'], 403);
+        }
+
         $answers = $request->input('answers', []);
         abort_unless(is_array($answers), 422);
-        $questionIds = $ujian->questions()->pluck('id')->all();
 
-        DB::transaction(function () use ($answers, $attempt, $questionIds): void {
+        return DB::transaction(function () use ($answers, $attempt, $ujian): \Illuminate\Http\JsonResponse {
+            $lockedAttempt = ExamAttempt::whereKey($attempt->id)->lockForUpdate()->first();
+
+            if (! $lockedAttempt || $lockedAttempt->status !== 'in_progress') {
+                return response()->json(['message' => 'Ujian sudah selesai.'], 403);
+            }
+
+            if (now()->gte($this->deadline($lockedAttempt))) {
+                return response()->json(['message' => 'Waktu ujian sudah berakhir.'], 403);
+            }
+
+            $questionIds = $ujian->questions()->pluck('id')->all();
+
             foreach ($answers as $questionId => $answer) {
                 if (! in_array((int) $questionId, $questionIds, true) || ! is_scalar($answer)) {
                     continue;
                 }
 
                 Answer::updateOrCreate(
-                    ['exam_attempt_id' => $attempt->id, 'question_id' => (int) $questionId],
+                    ['exam_attempt_id' => $lockedAttempt->id, 'question_id' => (int) $questionId],
                     ['jawaban' => (string) $answer]
                 );
             }
-        });
 
-        return response()->json(['saved' => true]);
+            return response()->json(['saved' => true]);
+        });
     }
 
     public function leave(Request $request, Exam $ujian): \Illuminate\Http\JsonResponse
@@ -314,23 +338,29 @@ class SiswaExamController extends Controller
     private function submitAttempt(ExamAttempt $attempt, array $submittedAnswers): void
     {
         DB::transaction(function () use ($attempt, $submittedAnswers): void {
-            $attempt->load('exam.questions');
-            $submittedAnswers = array_replace($attempt->answers()->pluck('jawaban', 'question_id')->all(), $submittedAnswers);
-            $totalWeight = (float) $attempt->exam->questions->sum(fn ($question) => $question->bobot ?: 1);
+            $lockedAttempt = ExamAttempt::whereKey($attempt->id)->lockForUpdate()->first();
+
+            if (! $lockedAttempt || $lockedAttempt->status !== 'in_progress') {
+                return;
+            }
+
+            $lockedAttempt->load('exam.questions');
+            $submittedAnswers = array_replace($lockedAttempt->answers()->pluck('jawaban', 'question_id')->all(), $submittedAnswers);
+            $totalWeight = (float) $lockedAttempt->exam->questions->sum(fn ($question) => $question->bobot ?: 1);
             $earned = 0;
 
-            foreach ($attempt->exam->questions as $question) {
+            foreach ($lockedAttempt->exam->questions as $question) {
                 $answer = $submittedAnswers[$question->id] ?? null;
                 $correct = $question->tipe === 'pg' && strtoupper((string) $answer) === strtoupper((string) $question->kunci);
                 $score = $correct ? (float) ($question->bobot ?: 1) : 0;
                 $earned += $score;
                 Answer::updateOrCreate(
-                    ['exam_attempt_id' => $attempt->id, 'question_id' => $question->id],
+                    ['exam_attempt_id' => $lockedAttempt->id, 'question_id' => $question->id],
                     ['jawaban' => is_scalar($answer) ? (string) $answer : null, 'is_correct' => $question->tipe === 'pg' ? $correct : null, 'skor' => $question->tipe === 'pg' ? $score : null]
                 );
             }
 
-            $attempt->update(['status' => now()->gte($this->deadline($attempt)) ? 'expired' : 'submitted', 'submitted_at' => now(), 'nilai_akhir' => $totalWeight > 0 ? round($earned / $totalWeight * 100, 2) : 0]);
+            $lockedAttempt->update(['status' => now()->gte($this->deadline($lockedAttempt)) ? 'expired' : 'submitted', 'submitted_at' => now(), 'nilai_akhir' => $totalWeight > 0 ? round($earned / $totalWeight * 100, 2) : 0]);
         });
     }
 }

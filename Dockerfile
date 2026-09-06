@@ -2,10 +2,11 @@ FROM php:8.4-cli
 
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    libzip-dev \
     curl \
     unzip \
     git \
-    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-install pdo_pgsql zip \
     && docker-php-ext-enable opcache \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
@@ -16,7 +17,7 @@ WORKDIR /var/www
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock package.json package-lock.json ./
-RUN composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader \
+RUN composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader --no-scripts \
     && npm ci --ignore-scripts
 
 COPY . .

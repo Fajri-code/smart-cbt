@@ -95,6 +95,7 @@ class ExamController extends Controller
 
         $data['kelas'] = $data['kelas_id'] ?? '-';
 
+        $data['acak_soal'] = $request->boolean('acak_soal');
         $data['kode_ujian'] = $this->uniqueCode();
 
         // Kalau dibuat aktif tetapi waktunya sudah lewat,
@@ -205,6 +206,8 @@ class ExamController extends Controller
         Exam $ujian
     ): RedirectResponse {
         $data = $this->validatedData($request);
+        
+        $data['acak_soal'] = $request->boolean('acak_soal');
 
         $data['tanggal_mulai'] = $this->combineDateTime(
             $data['tanggal_mulai_tanggal'] ?? null,
@@ -394,6 +397,11 @@ class ExamController extends Controller
                 'required',
                 'string',
                 'max:100',
+            ],
+
+            'acak_soal' => [
+                'nullable',
+                'boolean',
             ],
 
             'tanggal_mulai_tanggal' => [

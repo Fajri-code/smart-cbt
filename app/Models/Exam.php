@@ -24,6 +24,7 @@ class Exam extends Model
         'kode_ujian',
         'token',
         'token_aktif',
+        'acak_soal',
         'token_dibuat_at',
         'token_kedaluwarsa_at',
         'durasi_menit',
@@ -39,6 +40,7 @@ class Exam extends Model
         'tanggal_selesai' => 'datetime',
         'komponen_soal' => 'array',
         'token_aktif' => 'boolean',
+        'acak_soal' => 'boolean',
         'token_dibuat_at' => 'datetime',
         'token_kedaluwarsa_at' => 'datetime',
     ];

@@ -4,8 +4,20 @@
     $statusStyles = ['draft' => 'bg-slate-100 text-slate-700', 'aktif' => 'bg-emerald-100 text-emerald-700', 'selesai' => 'bg-blue-100 text-blue-700'];
 @endphp
 <x-app-layout>
-    <x-slot name="header"><div class="flex items-center justify-between gap-4"><h2 class="text-xl font-semibold leading-tight text-slate-800">Data Ujian</h2>@if (Auth::user()->isAdmin())<a href="{{ route('ujian.create') }}" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Tambah Ujian</a>@endif</div></x-slot>
+    <x-slot name="header">
+        <div>
+            <h2 class="text-xl font-semibold leading-tight text-slate-900">Data Ujian</h2>
+            <p class="mt-0.5 text-sm text-slate-500">Kelola pelaksanaan ujian dan penilaian</p>
+        </div>
+    </x-slot>
     <div class="py-10"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        @if (Auth::user()->isAdmin())
+            <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <a href="{{ route('ujian.create') }}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 shadow-sm">
+                    + Tambah Ujian
+                </a>
+            </div>
+        @endif
         @foreach (['success' => 'green', 'error' => 'red'] as $key => $color)
             @if (session($key))<div class="mb-4 rounded-md bg-{{ $color }}-50 p-4 text-sm text-{{ $color }}-700">{{ session($key) }}</div>@endif
         @endforeach
