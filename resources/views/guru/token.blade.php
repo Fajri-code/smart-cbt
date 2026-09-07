@@ -78,14 +78,34 @@
                     </div>
 
                     @if ($exam->token)
-                        <button type="button"
-                                @click="navigator.clipboard.writeText('{{ $exam->token }}'); copied = true; setTimeout(() => copied = false, 2500)"
-                                class="mt-4 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                            <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                            </svg>
-                            <span x-text="copied ? '✓ Berhasil Disalin!' : 'Salin Kode Token'"></span>
-                        </button>
+                        <div class="mt-4 text-center">
+                            <button type="button"
+                                    @click="navigator.clipboard.writeText('{{ $exam->token }}'); copied = true; setTimeout(() => copied = false, 2500)"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                <span x-text="copied ? 'V Berhasil Disalin!' : 'Salin Kode Token'"></span>
+                            </button>
+                        </div>
+
+                        <div class="mt-8 flex flex-col items-center border-t border-slate-100 pt-8">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-4">Scan QR untuk Masuk Ujian</p>
+                            <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm inline-block w-56 h-56 flex items-center justify-center">
+                                <img src="{!! $qrCode !!}" alt="QR Code Ujian" class="w-full h-full object-contain">
+                            </div>
+                            <div class="mt-4 flex gap-2">
+                                <a href="{!! $qrCode !!}" download="QR_Ujian_{{ $exam->kode_ujian }}.svg" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    Download QR
+                                </a>
+                            </div>
+                            <p class="mt-4 text-xs text-slate-500 text-center max-w-sm">
+                                Buka aplikasi kamera atau pemindai QR di Exambro.
+                                <br>
+                                URL: <a href="{{ $qrUrl }}" target="_blank" class="text-blue-600 hover:underline">{{ $qrUrl }}</a>
+                            </p>
+                        </div>
                     @endif
                 </div>
 

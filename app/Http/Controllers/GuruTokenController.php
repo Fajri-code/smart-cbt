@@ -21,7 +21,22 @@ class GuruTokenController extends Controller
     {
         $this->owned($ujian, $request);
         $ujian->rotateExpiredToken();
-        return view('guru.token', ['exam' => $ujian]);
+        
+        $qrOptions = new \chillerlan\QRCode\QROptions([
+            'version'         => \chillerlan\QRCode\Common\Version::AUTO,
+            'eccLevel'        => \chillerlan\QRCode\Common\EccLevel::M,
+            'outputInterface' => \chillerlan\QRCode\Output\QRMarkupSVG::class,
+            'outputBase64'    => true,
+            'addQuietzone'    => true,
+        ]);
+        $qrUrl = route('siswa.ujian.token', $ujian);
+        $qrCode = (new \chillerlan\QRCode\QRCode($qrOptions))->render($qrUrl);
+
+        return view('guru.token', [
+            'exam' => $ujian,
+            'qrCode' => $qrCode,
+            'qrUrl' => $qrUrl,
+        ]);
     }
 
     public function generate(Exam $ujian, Request $request): RedirectResponse

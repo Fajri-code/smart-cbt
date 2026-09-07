@@ -33,7 +33,7 @@
                             Kelola Soal
                         </a>
                         <a href="{{ route('guru.token.show', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                            Token
+                            Token & QR Akses
                         </a>
                         <a href="{{ route('guru.ujian.export-soal', $exam) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-emerald-50 px-5 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 border-emerald-200">
                             Export Soal
