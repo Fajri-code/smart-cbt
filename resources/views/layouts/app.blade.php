@@ -157,7 +157,7 @@
                             </div>
 
                             {{-- Nama --}}
-                            <div class="text-left">
+                            <div class="hidden text-left sm:block">
                                 <p class="max-w-[180px] truncate text-sm font-bold text-slate-800">
                                     {{ Auth::user()->name }}
                                 </p>
