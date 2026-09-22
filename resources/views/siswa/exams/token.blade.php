@@ -5,16 +5,28 @@
         <h1 class="mt-2 text-2xl font-black text-slate-900">{{ $exam->nama }}</h1>
         <p class="mt-3 text-sm text-slate-600">Masukkan token ujian dari guru atau pengawas untuk melanjutkan.</p>
         @if ($errors->any()) <p class="mt-5 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{{ $errors->first('token') }}</p> @endif
-        <form method="POST" action="{{ route('siswa.ujian.start', $exam) }}" class="mt-6 space-y-4">
+        <form id="token-form" method="POST" action="{{ route('siswa.ujian.start', $exam) }}" class="mt-6 space-y-4">
             @csrf
             <div>
                 <label for="token" class="block text-sm font-semibold text-slate-700">Token Ujian</label>
-                <input id="token" name="token" required autofocus autocomplete="off" maxlength="20" value="{{ old('token') }}" class="mt-1 block w-full rounded-lg border-slate-300 uppercase" placeholder="Masukkan token">
+                <input id="token" name="token" required autofocus autocomplete="off" maxlength="20" value="{{ old('token', request('t')) }}" class="mt-1 block w-full rounded-lg border-slate-300 uppercase" placeholder="Masukkan token">
             </div>
             <div class="flex flex-wrap gap-3">
                 <a href="{{ route('siswa.ujian.show', $exam) }}" class="inline-flex rounded-lg border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700">Kembali</a>
-                <button type="submit" class="rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Masuk Ujian</button>
+                <button type="submit" id="btn-submit-token" class="rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Masuk Ujian</button>
             </div>
         </form>
     </div></div></div>
+    
+    @if(request('t'))
+    <script>
+        // Auto submit form if token is present in URL (e.g. from QR scan)
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                document.getElementById('btn-submit-token').innerHTML = 'Memverifikasi...';
+                document.getElementById('token-form').submit();
+            }, 500); // slight delay for better UX
+        });
+    </script>
+    @endif
 </x-app-layout>

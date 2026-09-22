@@ -343,41 +343,8 @@
     </div>
 
 
-    {{-- Status --}}
-    <div>
-
-        <label for="status" class="mb-2 block text-sm font-medium text-slate-700">
-            Status
-        </label>
-
-        <select
-            id="status"
-            name="status"
-            class="w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-            required
-        >
-
-            @foreach ([
-                'draft' => 'Draft',
-                'aktif' => 'Aktif'
-            ] as $value => $label)
-
-                <option
-                    value="{{ $value }}"
-                    @selected(old('status', $exam->status ?? 'draft') === $value)
-                >
-                    {{ $label }}
-                </option>
-
-            @endforeach
-
-        </select>
-
-        @error('status')
-            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-        @enderror
-
-    </div>
+    {{-- Status (Otomatis Draft saat Dibuat, Diaktifkan oleh Guru setelah upload soal) --}}
+    <input type="hidden" name="status" value="{{ old('status', $exam->status ?? 'draft') }}">
 
     {{-- Acak Soal --}}
     <div>

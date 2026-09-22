@@ -45,17 +45,20 @@ class Exam extends Model
         'token_kedaluwarsa_at' => 'datetime',
     ];
 
-    public function activateToken(): void
+    public function activateToken(?bool $autoRotate = null): void
     {
         do {
             $token = Str::upper(Str::random(6));
         } while (self::where('token', $token)->where('id', '!=', $this->getKey())->exists());
 
+        $autoRotate = $autoRotate ?? $this->is_token_auto_rotate;
+
         $this->update([
             'token' => $token,
             'token_aktif' => true,
             'token_dibuat_at' => now(),
-            'token_kedaluwarsa_at' => now()->addMinutes(10),
+            'token_kedaluwarsa_at' => $autoRotate ? now()->addMinutes(10) : null,
+            'is_token_auto_rotate' => $autoRotate,
             'status' => 'aktif',
         ]);
     }
@@ -73,7 +76,7 @@ class Exam extends Model
         }
 
         if (! $this->token_kedaluwarsa_at) {
-            $this->update(['token_kedaluwarsa_at' => now()->addMinutes(10)]);
+            $this->update(['token_kedaluwarsa_at' => null]);
         }
     }
 
@@ -102,7 +105,7 @@ class Exam extends Model
         }
 
         if (! $this->token_kedaluwarsa_at) {
-            $this->update(['token_kedaluwarsa_at' => now()->addMinutes(10)]);
+            $this->update(['token_kedaluwarsa_at' => null]);
             return;
         }
 

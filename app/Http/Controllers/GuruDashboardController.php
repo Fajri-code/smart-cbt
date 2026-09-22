@@ -13,7 +13,10 @@ class GuruDashboardController extends Controller
         $guru = $request->user()->guru;
         abort_unless($guru, 403);
 
-        $baseQuery = Exam::where('guru_id', $guru->id);
+        $baseQuery = Exam::where(function ($q) use ($guru) {
+            $q->where('guru_id', $guru->id)
+              ->orWhere('guru_pengawas_id', $guru->id);
+        });
         $now = now();
 
         $exams = (clone $baseQuery)

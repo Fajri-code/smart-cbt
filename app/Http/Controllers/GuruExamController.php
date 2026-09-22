@@ -8,13 +8,14 @@ use Illuminate\View\View;
 
 class GuruExamController extends Controller
 {
-   public function show(Exam $ujian, Request $request): View
-{
-    // Pastikan ujian milik guru yang sedang login
-    abort_unless(
-        $ujian->guru_id === $request->user()->guru?->id,
-        403
-    );
+    public function show(Exam $ujian, Request $request): View
+    {
+        $guruId = $request->user()->guru?->id;
+        // Pastikan ujian milik guru yang sedang login atau guru pengawas
+        abort_unless(
+            $ujian->guru_id === $guruId || $ujian->guru_pengawas_id === $guruId,
+            403
+        );
 
     // Load relasi yang dibutuhkan
     $ujian->load([
@@ -80,7 +81,10 @@ class GuruExamController extends Controller
 
         $query = Exam::with(['mataPelajaran', 'kelasData'])
             ->withCount('questions')
-            ->where('guru_id', $guru->id);
+            ->where(function ($q) use ($guru) {
+                $q->where('guru_id', $guru->id)
+                  ->orWhere('guru_pengawas_id', $guru->id);
+            });
 
         $totalExams = (clone $query)->count();
         $activeExams = (clone $query)->where('status', 'aktif')->where('token_aktif', true)->count();

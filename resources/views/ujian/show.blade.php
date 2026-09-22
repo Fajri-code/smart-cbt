@@ -71,11 +71,20 @@
                     </p>
                     <p class="mt-1 text-xs text-slate-500">Token: {{ $exam->token_aktif ? 'Aktif (' . $exam->token . ')' : 'Nonaktif' }}</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                @php
+                    $isGuru = $isGuruView ?? false;
+                    $monitoringUrl = $isGuru ? route('guru.monitoring.index') : '#';
+                @endphp
+                <a href="{{ $monitoringUrl }}" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm block {{ $isGuru ? 'hover:bg-slate-50 hover:border-blue-200 transition cursor-pointer group relative' : 'cursor-default' }}">
                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Peserta Selesai/Mulai</p>
                     <p class="mt-2 text-2xl font-black text-blue-600">{{ $totalParticipants }} <span class="text-xs font-normal text-slate-500">siswa</span></p>
                     <p class="mt-1 text-xs text-slate-500">Riwayat submit & pengerjaan</p>
-                </div>
+                    @if($isGuru)
+                        <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-blue-500 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    @endif
+                </a>
             </div>
 
             {{-- Informasi Ujian --}}

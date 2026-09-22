@@ -16,10 +16,18 @@ class GuruMonitoringController extends Controller
         $guruId = $request->user()->guru?->id;
         abort_unless($guruId, 403);
 
-        $status = $request->string('status')->toString();
-        $allowedStatuses = ['online', 'in_progress', 'completed', 'not_started'];
-        $status = in_array($status, $allowedStatuses, true) ? $status : 'online';
-        $ownedExamIds = Exam::where('guru_id', $guruId)->pluck('id');
+        $queryExamId = $request->input('exam_id');
+        
+        $ownedExamQuery = Exam::where(function ($q) use ($guruId) {
+            $q->where('guru_id', $guruId)
+              ->orWhere('guru_pengawas_id', $guruId);
+        });
+
+        if ($queryExamId) {
+            $ownedExamQuery->where('id', $queryExamId);
+        }
+        
+        $ownedExamIds = $ownedExamQuery->pluck('id');
         $base = ExamAttempt::whereIn('exam_id', $ownedExamIds);
 
         $counts = [
@@ -28,6 +36,23 @@ class GuruMonitoringController extends Controller
             'completed' => (clone $base)->whereIn('status', ['submitted', 'completed'])->count(),
             'not_started' => $this->notStartedQuery($ownedExamIds)->count(),
         ];
+
+        // Auto-select the first non-empty tab if the user didn't explicitly request a specific status
+        if (!$request->has('status')) {
+            $status = 'online'; // default
+            if ($counts['online'] === 0) {
+                foreach (['in_progress', 'completed', 'not_started'] as $s) {
+                    if ($counts[$s] > 0) {
+                        $status = $s;
+                        break;
+                    }
+                }
+            }
+        } else {
+            $status = $request->string('status')->toString();
+            $allowedStatuses = ['online', 'in_progress', 'completed', 'not_started'];
+            $status = in_array($status, $allowedStatuses, true) ? $status : 'online';
+        }
 
         if ($status === 'not_started') {
             $rows = $this->notStartedQuery($ownedExamIds)->get();

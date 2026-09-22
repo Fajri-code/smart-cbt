@@ -14,7 +14,12 @@ class GuruTokenController extends Controller
         $guru = $request->user()->guru;
         abort_unless($guru, 403);
 
-        return view('guru.token-index', ['exams' => Exam::where('guru_id', $guru->id)->latest()->paginate(10)]);
+        return view('guru.token-index', [
+            'exams' => Exam::where(function ($q) use ($guru) {
+                $q->where('guru_id', $guru->id)
+                  ->orWhere('guru_pengawas_id', $guru->id);
+            })->latest()->paginate(10)
+        ]);
     }
 
     public function show(Exam $ujian, Request $request): View
@@ -29,7 +34,7 @@ class GuruTokenController extends Controller
             'outputBase64'    => true,
             'addQuietzone'    => true,
         ]);
-        $qrUrl = route('siswa.ujian.token', $ujian);
+        $qrUrl = route('siswa.ujian.token', ['ujian' => $ujian, 't' => $ujian->token]);
         $qrCode = (new \chillerlan\QRCode\QRCode($qrOptions))->render($qrUrl);
 
         return view('guru.token', [
@@ -43,7 +48,10 @@ class GuruTokenController extends Controller
     {
         $this->owned($ujian, $request);
         abort_if($ujian->status === 'selesai', 403, 'Ujian sudah selesai, token tidak bisa dibuat lagi.');
-        $ujian->activateToken();
+        
+        $autoRotate = $request->boolean('auto_rotate');
+        $ujian->activateToken($autoRotate);
+        
         return back()->with('success', 'Token ujian berhasil dibuat.');
     }
 
@@ -57,6 +65,7 @@ class GuruTokenController extends Controller
 
     private function owned(Exam $exam, Request $request): void
     {
-        abort_unless($exam->guru_id === $request->user()->guru?->id, 403);
+        $guruId = $request->user()->guru?->id;
+        abort_unless($exam->guru_id === $guruId || $exam->guru_pengawas_id === $guruId, 403);
     }
 }
