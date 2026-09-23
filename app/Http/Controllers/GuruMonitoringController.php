@@ -33,7 +33,7 @@ class GuruMonitoringController extends Controller
         $counts = [
             'online' => (clone $base)->where('status', 'in_progress')->where('updated_at', '>=', now()->subMinutes(5))->count(),
             'in_progress' => (clone $base)->where('status', 'in_progress')->count(),
-            'completed' => (clone $base)->whereIn('status', ['submitted', 'completed'])->count(),
+            'completed' => (clone $base)->whereIn('status', ['submitted', 'completed', 'expired'])->count(),
             'not_started' => $this->notStartedQuery($ownedExamIds)->count(),
         ];
 
@@ -64,7 +64,7 @@ class GuruMonitoringController extends Controller
                 ->whereIn('exam_id', $ownedExamIds)
                 ->when($status === 'online', fn ($query) => $query->where('status', 'in_progress')->where('updated_at', '>=', now()->subMinutes(5)))
                 ->when($status === 'in_progress', fn ($query) => $query->where('status', 'in_progress'))
-                ->when($status === 'completed', fn ($query) => $query->whereIn('status', ['submitted', 'completed']))
+                ->when($status === 'completed', fn ($query) => $query->whereIn('status', ['submitted', 'completed', 'expired']))
                 ->latest();
             $rows = $attemptsQuery->get();
         }

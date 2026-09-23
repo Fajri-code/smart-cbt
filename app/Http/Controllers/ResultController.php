@@ -37,7 +37,7 @@ class ResultController extends Controller
             ->when($request->filled('end_date'), fn ($query) => $query->whereDate('started_at', '<=', $request->date('end_date')));
 
         $totalPeserta = (clone $query)->count();
-        $totalSelesai = (clone $query)->where('status', 'submitted')->count();
+        $totalSelesai = (clone $query)->whereIn('status', ['submitted', 'completed', 'expired'])->count();
         $rataRata = (clone $query)->whereNotNull('nilai_akhir')->avg('nilai_akhir');
         $nilaiTertinggi = (clone $query)->whereNotNull('nilai_akhir')->max('nilai_akhir');
 
