@@ -435,10 +435,54 @@ class QuestionBankController extends Controller
         $collection = (new \Rap2hpoutre\FastExcel\FastExcel)->import($request->file('file'));
 
         $count = 0;
-        foreach ($collection as $row) {
-            if (empty($row['Pertanyaan'])) continue;
+        $headerMap = [];
 
-            $tipe = strtolower($row['Tipe'] ?? 'pg');
+        foreach ($collection as $row) {
+            // Detect if this row is actually a header row (often happens if row 1 was a large merged title)
+            $isHeaderRow = false;
+            foreach ($row as $key => $val) {
+                $lowerVal = trim(strtolower((string)$val));
+                if (str_contains($lowerVal, 'pertanyaan') || str_contains($lowerVal, 'teks soal')) {
+                    $isHeaderRow = true;
+                    // Map headers based on this row's values
+                    foreach ($row as $k => $v) {
+                        $vLower = trim(strtolower((string)$v));
+                        if (str_contains($vLower, 'pertanyaan') || str_contains($vLower, 'soal')) $headerMap['pertanyaan'] = $k;
+                        if (str_contains($vLower, 'opsi a')) $headerMap['opsi a'] = $k;
+                        if (str_contains($vLower, 'opsi b')) $headerMap['opsi b'] = $k;
+                        if (str_contains($vLower, 'opsi c')) $headerMap['opsi c'] = $k;
+                        if (str_contains($vLower, 'opsi d')) $headerMap['opsi d'] = $k;
+                        if (str_contains($vLower, 'opsi e')) $headerMap['opsi e'] = $k;
+                        if (str_contains($vLower, 'kunci')) $headerMap['kunci'] = $k;
+                        if (str_contains($vLower, 'bobot')) $headerMap['bobot'] = $k;
+                        if (str_contains($vLower, 'tipe')) $headerMap['tipe'] = $k;
+                    }
+                    break;
+                }
+            }
+
+            if ($isHeaderRow) {
+                continue;
+            }
+
+            $normalizedRow = [];
+            if (empty($headerMap)) {
+                // Fallback to default headers from row 1
+                foreach ($row as $key => $value) {
+                    $normalizedRow[trim(strtolower($key))] = $value;
+                }
+            } else {
+                // Use dynamically discovered headers
+                foreach ($headerMap as $stdKey => $actualKey) {
+                    $normalizedRow[$stdKey] = $row[$actualKey] ?? null;
+                }
+            }
+
+            if (empty($normalizedRow['pertanyaan'])) {
+                continue;
+            }
+
+            $tipe = strtolower($normalizedRow['tipe'] ?? 'pg');
             if (!in_array($tipe, ['pg', 'essay_1', 'essay_2'])) {
                 $tipe = 'pg';
             }
@@ -446,14 +490,14 @@ class QuestionBankController extends Controller
             BankQuestion::create([
                 'question_bank_id' => $bankSoal->id,
                 'tipe' => $tipe,
-                'pertanyaan' => $row['Pertanyaan'],
-                'opsi_a' => $row['Opsi A'] ?? null,
-                'opsi_b' => $row['Opsi B'] ?? null,
-                'opsi_c' => $row['Opsi C'] ?? null,
-                'opsi_d' => $row['Opsi D'] ?? null,
-                'opsi_e' => $row['Opsi E'] ?? null,
-                'kunci' => $row['Kunci'] ?? null,
-                'bobot' => is_numeric($row['Bobot'] ?? null) ? $row['Bobot'] : 1,
+                'pertanyaan' => $normalizedRow['pertanyaan'],
+                'opsi_a' => $normalizedRow['opsi a'] ?? null,
+                'opsi_b' => $normalizedRow['opsi b'] ?? null,
+                'opsi_c' => $normalizedRow['opsi c'] ?? null,
+                'opsi_d' => $normalizedRow['opsi d'] ?? null,
+                'opsi_e' => $normalizedRow['opsi e'] ?? null,
+                'kunci' => $normalizedRow['kunci'] ?? null,
+                'bobot' => is_numeric($normalizedRow['bobot'] ?? null) ? $normalizedRow['bobot'] : 1,
             ]);
             $count++;
         }

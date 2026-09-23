@@ -4,9 +4,28 @@
     @endphp
     <x-slot name="header"><div><p class="text-sm font-medium text-amber-600"></p><h2 class="text-xl font-semibold leading-tight text-slate-800">Monitoring Ujian</h2><p class="mt-1 text-sm text-slate-500">Pantau progres peserta pada ujian yang menjadi tanggung jawab Anda.</p></div></x-slot>
     <div class="py-8"><div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+        
+        {{-- Filter Ujian --}}
+        <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <form method="GET" action="{{ route('guru.monitoring.index') }}" class="flex flex-col sm:flex-row items-center gap-4">
+                @if($status !== 'online')
+                    <input type="hidden" name="status" value="{{ $status }}">
+                @endif
+                <label for="exam_id" class="text-sm font-medium text-slate-700 whitespace-nowrap">Filter Ujian:</label>
+                <select name="exam_id" id="exam_id" class="block w-full sm:w-auto rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" onchange="this.form.submit()">
+                    <option value="">-- Tampilkan Semua Ujian --</option>
+                    @foreach($ownedExams as $ex)
+                        <option value="{{ $ex->id }}" {{ $queryExamId == $ex->id ? 'selected' : '' }}>
+                            {{ $ex->nama }} ({{ $ex->kelas_nama }})
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+        </div>
+
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             @foreach ($labels as $key => $label)
-                <a href="{{ route('guru.monitoring.index', ['status' => $key]) }}" class="rounded-lg border bg-white p-5 shadow-sm transition hover:border-blue-300 {{ $status === $key ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200' }}"><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ $counts[$key] }}</p></a>
+                <a href="{{ route('guru.monitoring.index', ['status' => $key, 'exam_id' => $queryExamId]) }}" class="rounded-lg border bg-white p-5 shadow-sm transition hover:border-blue-300 {{ $status === $key ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200' }}"><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-2 text-3xl font-bold text-slate-900">{{ $counts[$key] }}</p></a>
             @endforeach
         </div>
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-200 px-6 py-4"><h3 class="font-semibold text-slate-900">{{ $labels[$status] }}</h3></div><div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-3">Peserta</th><th class="px-6 py-3">Ujian</th><th class="px-6 py-3">Kelas</th><th class="px-6 py-3">Status</th>@if ($status === 'not_started')<th class="px-6 py-3">Jadwal Mulai</th><th class="px-6 py-3">Jadwal Selesai</th>@else<th class="px-6 py-3">Mulai</th><th class="px-6 py-3">{{ $status === 'completed' ? 'Selesai' : 'Deadline' }}</th>@if ($status === 'in_progress')<th class="px-6 py-3">Progress</th>@endif @if ($status === 'completed')<th class="px-6 py-3">Nilai</th>@endif @endif</tr></thead><tbody class="divide-y divide-slate-100">

@@ -77,10 +77,17 @@ class GuruMonitoringController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
+        $ownedExamsList = (clone $ownedExamQuery)->with('kelasData')->orderBy('nama')->get(['id', 'nama', 'kelas_id', 'kelas'])->map(function($exam) {
+            $exam->kelas_nama = $exam->kelasData ? $exam->kelasData->nama_kelas : $exam->kelas;
+            return $exam;
+        });
+
         return view('guru.monitoring.index', [
             'attempts' => $attempts,
             'status' => $status,
             'counts' => $counts,
+            'ownedExams' => $ownedExamsList,
+            'queryExamId' => $queryExamId,
         ]);
     }
 
