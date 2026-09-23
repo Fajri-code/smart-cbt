@@ -694,6 +694,24 @@
             console.log('- Pending answers from localStorage:', Object.keys(state.pendingAnswers).length);
             console.log('- Changed questions:', state.changedQuestions.size);
 
+            // Restore UI from localStorage pending answers
+            if (Object.keys(state.pendingAnswers).length > 0) {
+                Object.entries(state.pendingAnswers).forEach(([qId, val]) => {
+                    const inputs = elements.form.querySelectorAll(`[name="answers[${qId}]"]`);
+                    inputs.forEach(input => {
+                        if (input.type === 'radio') {
+                            if (input.value === val) {
+                                input.checked = true;
+                            }
+                        } else {
+                            input.value = val;
+                        }
+                    });
+                });
+                // Update nav button colors based on restored answers
+                updateAnswerProgress();
+            }
+
             // Set deadline
             const deadlineStr = '{{ $attempt->started_at->copy()->addMinutes($exam->durasi_menit)->min($exam->tanggal_selesai ?? $attempt->started_at->copy()->addMinutes($exam->durasi_menit))->toIso8601String() }}';
             deadline = new Date(deadlineStr).getTime();
