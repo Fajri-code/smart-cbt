@@ -2,12 +2,6 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                {{-- Breadcrumb --}}
-                <nav class="mb-1 flex items-center gap-2 text-xs text-slate-500">
-                    <a href="{{ route('guru.dashboard') }}" class="hover:text-slate-800">Dashboard</a>
-                    <span>/</span>
-                    <span class="font-medium text-slate-800">Ujian Saya</span>
-                </nav>
                 <h2 class="text-xl font-bold leading-tight text-slate-900">
                     Daftar Ujian Saya
                 </h2>

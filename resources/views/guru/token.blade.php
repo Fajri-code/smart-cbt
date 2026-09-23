@@ -2,20 +2,9 @@
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                {{-- Breadcrumb --}}
-                <nav class="mb-1 flex items-center gap-2 text-xs text-slate-500">
-                    <a href="{{ route('guru.dashboard') }}" class="hover:text-slate-800">Dashboard</a>
-                    <span>/</span>
-                    <a href="{{ route('guru.ujian.index') }}" class="hover:text-slate-800">Ujian Saya</a>
-                    <span>/</span>
-                    <span class="font-medium text-slate-800">Token Ujian: {{ $exam->nama }}</span>
-                </nav>
                 <h2 class="text-xl font-bold leading-tight text-slate-900">
                     Token Akses Ujian
                 </h2>
-                <p class="mt-0.5 text-xs text-slate-500">
-                    Gunakan token ini untuk dibagikan kepada peserta ujian agar dapat memulai pengerjaan.
-                </p>
             </div>
 
             <div class="flex items-center gap-2">
