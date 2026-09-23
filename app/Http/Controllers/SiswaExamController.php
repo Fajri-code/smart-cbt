@@ -117,10 +117,6 @@ class SiswaExamController extends Controller
 
         $attempt = $this->attempt($ujian, $siswa);
         
-        if ($attempt && $attempt->token_used === $token) {
-            return back()->withErrors(['token' => 'Token ini sudah pernah dipakai. Tunggu token baru dari guru.'])->withInput();
-        }
-
         if (! $attempt) {
             $attempt = ExamAttempt::create([
                 'exam_id' => $ujian->id,
