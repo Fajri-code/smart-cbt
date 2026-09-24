@@ -53,6 +53,7 @@
                             <tr>
                                 <th class="px-5 py-3 w-16 text-center">No</th>
                                 <th class="px-5 py-3">Tipe Soal</th>
+                                <th class="px-5 py-3 w-1/3">Pertanyaan</th>
                                 <th class="px-5 py-3 text-center">Jawaban Siswa</th>
                                 <th class="px-5 py-3 text-center">Kunci</th>
                                 <th class="px-5 py-3 text-center">Status</th>
@@ -78,6 +79,7 @@
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-5 py-4 text-center font-medium text-slate-900">{{ $index + 1 }}</td>
                                     <td class="px-5 py-4 text-slate-600">{{ $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay' }}</td>
+                                <td class="px-5 py-4"><div class="line-clamp-2 text-slate-600" title="{{ strip_tags($ans->question->pertanyaan) }}">{!! Str::limit(strip_tags($ans->question->pertanyaan), 100) !!}</div></td>
                                     <td class="px-5 py-4 text-center font-bold text-slate-900">{{ $ans->jawaban ?: '-' }}</td>
                                     <td class="px-5 py-4 text-center text-slate-600">{{ $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)' }}</td>
                                     <td class="px-5 py-4 text-center">

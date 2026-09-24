@@ -239,6 +239,7 @@ class ExportController extends Controller
             $data[] = [
                 'No' => $no++,
                 'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
+                'Pertanyaan' => strip_tags($ans->question->pertanyaan),
                 'Jawaban Siswa' => $ans->jawaban ?: '-',
                 'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
                 'Status' => $statusText,
