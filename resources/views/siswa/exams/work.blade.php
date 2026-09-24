@@ -35,7 +35,19 @@
     </header>
 
     <main class="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_260px]">
-        <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam) }}" class="space-y-5">
+        <div class="min-w-0">
+            @if ($exam->deskripsi)
+                <div class="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5 shadow-sm">
+                    <div class="flex gap-3">
+                        <svg class="h-6 w-6 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <h4 class="text-sm font-bold text-amber-900">Petunjuk Ujian</h4>
+                            <div class="mt-1 text-sm text-amber-800 leading-relaxed whitespace-pre-wrap">{{ $exam->deskripsi }}</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam) }}" class="space-y-5">
             @csrf
             
             <!-- Hidden input to track pending state -->
@@ -110,6 +122,7 @@
                 </button>
             </div>
         </form>
+        </div>
 
         <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
