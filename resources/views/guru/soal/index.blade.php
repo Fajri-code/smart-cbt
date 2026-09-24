@@ -600,7 +600,7 @@
                         </div>
                         @endif
                         <div class="mt-2 whitespace-pre-line text-sm font-medium leading-relaxed text-slate-800">
-                            {{ $question->pertanyaan }}
+                            {!! $question->pertanyaan !!}
                         </div>
 
 
@@ -637,7 +637,7 @@
                                             {{-- ISI OPSI --}}
                                             <span class="flex-1">
 
-                                                {{ $question->{'opsi_'.$option} }}
+                                                {!! $question->{'opsi_'.$option} !!}
 
                                             </span>
 

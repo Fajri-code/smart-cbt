@@ -81,9 +81,9 @@
                       </div>
                       @endif
                       <div class="prose prose-slate mt-2 max-w-none">
-                          <p class="whitespace-pre-line text-lg font-semibold leading-relaxed text-slate-900">
-                              {{ $question->pertanyaan }}
-                          </p>
+                          <div class="whitespace-pre-line text-lg font-semibold leading-relaxed text-slate-900">
+                              {!! $question->pertanyaan !!}
+                          </div>
                       </div>
 
                     @if ($question->tipe === 'pg')
@@ -99,7 +99,7 @@
                                                @checked(($answers[$question->id] ?? '') === strtoupper($option))>
                                         <span>
                                             <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>
-                                            {{ $question->{'opsi_'.$option} }}
+                                            {!! $question->{'opsi_'.$option} !!}
                                         </span>
                                     </label>
                                 @endif
