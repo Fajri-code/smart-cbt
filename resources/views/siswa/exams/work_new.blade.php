@@ -13,7 +13,10 @@
     </script>
     <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800" x-data="{ zoomImage: null }">
+<body class="min-h-screen bg-slate-50 text-slate-800" 
+      x-data="{ zoomImage: null, showConfirmModal: false, unansweredCount: 0, pendingCount: 0, submitErrorMessage: null }"
+      @open-submit-modal.window="unansweredCount = $event.detail.unansweredCount; pendingCount = $event.detail.pendingCount; showConfirmModal = true;"
+      @close-submit-modal.window="showConfirmModal = false;">
     <div x-data="{ navOpen: false }" @keydown.escape.window="navOpen = false">
         <header class="sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm">
             <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -468,13 +471,39 @@
         // ============================================================================
 
         /**
-         * Submit exam dengan memastikan semua pending answers tersimpan dulu
+         * Buka modal konfirmasi kumpulkan ujian (Kompatibel 100% dengan Safe Exam Browser & Android Exambro)
          */
-        async function submitExam() {
-            if (!confirm('Kumpulkan ujian sekarang? Jawaban yang sudah dikirim tidak dapat diubah.')) {
+        function submitExam() {
+            if (state.submitStarted || state.isSubmitting) {
                 return;
             }
 
+            // Hitung jumlah soal yang belum dijawab
+            const answers = getCurrentAnswers();
+            const answeredCount = Object.values(answers).filter(a => String(a).trim() !== '').length;
+            const unanswered = elements.panels.length - answeredCount;
+            const pending = Object.keys(state.pendingAnswers).length;
+
+            // Buka custom DOM modal melalui event Alpine
+            window.dispatchEvent(new CustomEvent('open-submit-modal', {
+                detail: {
+                    unansweredCount: unanswered,
+                    pendingCount: pending
+                }
+            }));
+        }
+
+        /**
+         * Eksekusi kumpulkan ujian saat siswa menekan tombol "Ya, Kumpulkan" di dalam modal
+         */
+        async function executeFinalSubmit() {
+            window.dispatchEvent(new CustomEvent('close-submit-modal'));
+
+            if (state.submitStarted || state.isSubmitting) {
+                return;
+            }
+
+            state.submitStarted = true;
             state.isSubmitting = true;
 
             // Disable buttons
@@ -490,24 +519,27 @@
                 // Wait a bit untuk memastikan state update
                 await new Promise(resolve => setTimeout(resolve, 500));
 
-                // Jika masih ada pending (setelah retries), tetap submit
-                // Backend akan menggunakan jawaban yang sudah tersimpan
-                if (state.pendingAnswers.size > 0) {
-                    console.warn('Ada jawaban yang masih pending, tetap submit');
-                }
-
                 // Submit form
                 elements.form.submit();
             } catch (error) {
                 console.error('Submit error:', error);
                 elements.finish.disabled = false;
                 elements.finish.textContent = 'Kumpulkan Ujian';
-                if (error.message === "Session Expired") {
-                    alert("Gagal mengumpulkan ujian karena sesi Anda telah berakhir.\n\nSilakan REFRESH / MUAT ULANG halaman ini.");
-                } else {
-                    alert("Jawaban belum berhasil tersimpan ke server akibat gangguan koneksi. Cek koneksi Anda dan coba lagi.");
-                }
                 state.isSubmitting = false;
+                state.submitStarted = false;
+
+                const errorMsg = error.message === "Session Expired"
+                    ? "Sesi ujian Anda telah berakhir atau akun aktif di perangkat lain. Silakan MUAT ULANG / REFRESH halaman ini."
+                    : "Gagal menyimpan jawaban ke server. Silakan periksa koneksi internet Anda lalu coba tekan Kumpulkan lagi.";
+
+                const bodyEl = document.querySelector('body');
+                if (window.Alpine && bodyEl) {
+                    const alpineData = Alpine.$data(bodyEl);
+                    if (alpineData) {
+                        alpineData.submitErrorMessage = errorMsg;
+                    }
+                }
+                alert(errorMsg);
             }
         }
 
@@ -680,6 +712,106 @@
         // Start initialization
         initialize();
     </script>
+    <!-- Submit Confirmation Modal (Safe Exam Browser & Android Exambro Compatible) -->
+    <template x-if="showConfirmModal">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm"
+             x-transition.opacity>
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+                <div class="flex items-center gap-3">
+                    <div class="rounded-full bg-amber-100 p-2.5 text-amber-600">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Kumpulkan Ujian?</h3>
+                        <p class="text-xs text-slate-500">Konfirmasi penyelesaian ujian</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-3 text-sm text-slate-600">
+                    <template x-if="unansweredCount > 0">
+                        <div class="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-rose-800">
+                            <div class="flex items-center gap-2 font-bold text-sm">
+                                <svg class="h-4 w-4 shrink-0 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Perhatian: Masih ada soal kosong!</span>
+                            </div>
+                            <p class="mt-1 text-xs leading-relaxed text-rose-700">
+                                Ada <strong class="font-extrabold text-rose-900" x-text="unansweredCount"></strong> soal yang belum Anda jawab. Anda tetap bisa mengumpulkan atau memeriksa kembali.
+                            </p>
+                        </div>
+                    </template>
+
+                    <template x-if="unansweredCount === 0">
+                        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800">
+                            <div class="flex items-center gap-2 font-bold text-sm">
+                                <svg class="h-4 w-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>Semua soal sudah dijawab</span>
+                            </div>
+                            <p class="mt-1 text-xs leading-relaxed text-emerald-700">
+                                Luar biasa! Seluruh soal telah Anda jawab dengan lengkap.
+                            </p>
+                        </div>
+                    </template>
+
+                    <p class="text-xs leading-relaxed text-slate-500">
+                        Jawaban yang sudah dikumpulkan tidak dapat diubah kembali. Pastikan Anda telah memeriksa seluruh jawaban Anda sebelum menyelesaikan ujian.
+                    </p>
+                </div>
+
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button type="button" 
+                            class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+                            @click="showConfirmModal = false">
+                        Periksa Lagi
+                    </button>
+                    <button type="button" 
+                            id="btn-confirm-submit-new"
+                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition"
+                            onclick="executeFinalSubmit()">
+                        Ya, Kumpulkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Error Alert Modal (Fallback jika window.alert diblokir Exambro) -->
+    <template x-if="submitErrorMessage">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm"
+             x-transition.opacity>
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+                <div class="flex items-center gap-3 text-rose-600">
+                    <div class="rounded-full bg-rose-100 p-2.5">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Gagal Mengumpulkan</h3>
+                        <p class="text-xs text-slate-500">Terjadi kendala saat menyimpan jawaban</p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <p class="text-sm leading-relaxed text-slate-600" x-text="submitErrorMessage"></p>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" 
+                            class="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-900 active:scale-95 transition"
+                            @click="submitErrorMessage = null">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <!-- Image Zoom Modal -->
     <template x-if="zoomImage">
         <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-sm transition-all" @click="zoomImage = null" x-transition.opacity>
