@@ -320,6 +320,7 @@
                 extraPlugins: 'mathjax,visualmath',
                 mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML',
                 height: 250,
+                versionCheck: false,
                 toolbar: [
                     { name: 'document', items: ['Source'] },
                     { name: 'clipboard', items: ['Undo', 'Redo'] },
