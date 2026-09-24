@@ -1,9 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <h2 class="text-xl font-bold text-slate-900">Kartu Ujian</h2>
-            <p class="mt-0.5 text-sm text-slate-500">Pilih ujian dan kelas untuk mencetak kartu peserta.</p>
-        </div>
+            <div class="flex items-center justify-between w-full"><div><h2 class="text-xl font-bold text-slate-900">Kartu Ujian</h2>
+            <p class="mt-0.5 text-sm text-slate-500">Pilih ujian dan kelas untuk mencetak kartu peserta.</p></div><a href="{{ route('kartu-ujian.settings') }}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Pengaturan Kartu Ujian</a></div>
     </x-slot>
 
     <div class="py-6" x-data="{ modeDuduk: '{{ request('mode_duduk', 'otomatis') }}' }">
