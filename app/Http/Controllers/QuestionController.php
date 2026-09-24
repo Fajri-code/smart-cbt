@@ -220,7 +220,7 @@ class QuestionController extends Controller
         return $request->validate([
             'tipe' => ['required', 'in:pg,essay_1,essay_2'],
             'pertanyaan' => ['required', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
             'remove_image' => ['nullable', 'boolean'],
             'petunjuk_jawaban' => ['nullable', 'string'],
             'opsi_a' => ['nullable', 'string'], 'opsi_b' => ['nullable', 'string'],
@@ -254,4 +254,5 @@ class QuestionController extends Controller
         };
     }
 }
+
 

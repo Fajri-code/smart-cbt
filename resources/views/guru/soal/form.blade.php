@@ -124,10 +124,10 @@
                             <input type="file" 
                                    id="image" 
                                    name="image" 
-                                   accept="image/png, image/jpeg, image/jpg, image/webp"
+                                   accept="image/jpeg, image/jpg, image/png, image/webp, image/gif, image/svg+xml"
                                    @change="const file = $event.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = (e) => { imagePreview = e.target.result; }; reader.readAsDataURL(file); } else { imagePreview = null; }"
                                    class="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100">
-                            <p class="mt-1 text-[10px] text-slate-400">Format: JPG, PNG, WEBP. Maks 2MB.</p>
+                            <p class="mt-1 text-[10px] text-slate-400">Format: JPG, JPEG, PNG, WEBP, GIF, SVG. Maks 2MB.</p>
                             
                             {{-- PREVIEW GAMBAR BARU --}}
                             <template x-if="imagePreview">
@@ -263,3 +263,4 @@
         </div>
     </div>
 </x-app-layout>
+

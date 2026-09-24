@@ -125,7 +125,7 @@ class QuestionBankController extends Controller
                 'required',
                 'string'
             ],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
 
             'petunjuk_jawaban' => [
                 'nullable',
@@ -506,3 +506,4 @@ class QuestionBankController extends Controller
         return back()->with('success', "$count soal berhasil diimport dari Excel.");
     }
 }
+
