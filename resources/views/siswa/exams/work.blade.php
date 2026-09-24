@@ -7,7 +7,7 @@
     <title>{{ $exam->nama }} - SMART CBT</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
+<body class="min-h-screen bg-slate-50 text-slate-800" x-data="{ zoomImage: null }">
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white shadow-sm">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div class="min-w-0">
@@ -71,7 +71,7 @@
 
                     @if($question->image)
                       <div class="mt-6 mb-4">
-                          <img src="{{ Storage::url($question->image) }}" class="max-h-80 w-auto rounded-xl border border-slate-200 shadow-sm" alt="Gambar Soal">
+                          <img src="{{ Storage::url($question->image) }}" class="max-h-80 w-auto rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition" alt="Gambar Soal" @click="zoomImage = '{{ Storage::url($question->image) }}'">
                       </div>
                       @endif
                       <div class="prose prose-slate mt-2 max-w-none">
@@ -807,5 +807,19 @@
         // Start initialization
         initialize();
     </script>
+    <!-- Image Zoom Modal -->
+    <template x-if="zoomImage">
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-sm transition-all" @click="zoomImage = null" x-transition.opacity>
+            <div class="relative max-h-full max-w-full">
+                <button class="absolute -top-12 right-0 rounded-full bg-white/20 p-2 text-white hover:bg-white/40" @click="zoomImage = null">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                <img :src="zoomImage" class="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl" @click.stop>
+            </div>
+        </div>
+    </template>
 </body>
 </html>
+
