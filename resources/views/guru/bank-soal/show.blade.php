@@ -73,19 +73,66 @@
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-3">Tipe</th><th class="px-6 py-3">Pertanyaan</th><th class="px-6 py-3">Pilihan Jawaban</th><th class="px-6 py-3">Kunci</th><th class="px-6 py-3">Bobot</th><th class="px-6 py-3">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($questions as $question)<tr><td class="px-6 py-4">{{ strtoupper(str_replace('_', ' ', $question->tipe)) }}</td><td class="max-w-2xl px-6 py-4">@if($question->image) <span title="Ada Gambar" class="text-blue-500 mr-1">🖼️</span> @endif {{ Str::limit($question->pertanyaan, 140) }}</td><td class="px-6 py-4"><div class="space-y-1 text-xs">@foreach (['a', 'b', 'c', 'd', 'e'] as $option)@if ($question->{'opsi_'.$option})<p><span class="font-semibold">{{ strtoupper($option) }}.</span> {{ $question->{'opsi_'.$option} }}</p>@endif @endforeach</div></td><td class="px-6 py-4 font-semibold">{{ $question->kunci ?: '-' }}</td><td class="px-6 py-4">{{ $question->bobot }}</td><td class="px-6 py-4"><form method="POST" action="{{ route('guru.bank.question.destroy', [$bank, $question]) }}">@csrf @method('DELETE')<button class="text-red-600" type="submit">Hapus</button></form></td></tr>@empty<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada soal dalam bank ini.</td></tr>@endforelse</tbody></table></div><div class="p-6">{{ $questions->links() }}</div></div>
     </div></div>
 
+    
+    <!-- Modal MathLive -->
+    <div id="mathlive-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:99999; backdrop-filter: blur(4px);">
+        <div style="background:#fff; width:90%; max-width:600px; margin:10vh auto; padding:24px; border-radius:16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Editor Rumus Matematika (Visual)</h3>
+            <p class="text-sm text-slate-500 mb-4">Gunakan keyboard virtual di bawah untuk membuat pecahan, akar, pangkat, dll.</p>
+            
+            <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc;">
+                <math-field id="mathfield" style="width: 100%; font-size: 24px; outline: none; border: none; background: transparent;"></math-field>
+            </div>
+            
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('mathlive-modal').style.display='none'" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Batal</button>
+                <button type="button" onclick="insertMath()" class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Sisipkan Rumus</button>
+            </div>
+        </div>
+    </div>
+    
     @push('scripts')
     <script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
+<script src="https://unpkg.com/mathlive"></script>
+    <script>
+        CKEDITOR.plugins.add('visualmath', {
+            init: function(editor) {
+                editor.addCommand('openVisualMath', {
+                    exec: function(editor) {
+                        window.currentMathEditor = editor;
+                        document.getElementById('mathlive-modal').style.display = 'block';
+                        document.getElementById('mathfield').setValue('');
+                        setTimeout(() => document.getElementById('mathfield').focus(), 100);
+                    }
+                });
+                editor.ui.addButton('VisualMath', {
+                    label: 'Editor Rumus Visual (Pecahan, Akar, dll)',
+                    command: 'openVisualMath',
+                    toolbar: 'insert',
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1046/1046399.png'
+                });
+            }
+        });
+
+        function insertMath() {
+            var latex = document.getElementById('mathfield').getValue();
+            if (latex) {
+                window.currentMathEditor.insertHtml('\\(' + latex + '\\)');
+            }
+            document.getElementById('mathlive-modal').style.display = 'none';
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const ckeditorConfig = {
-                extraPlugins: 'mathjax',
+                extraPlugins: 'mathjax,visualmath',
                 mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML',
                 height: 150,
                 toolbar: [
                     { name: 'document', items: ['Source'] },
                     { name: 'clipboard', items: ['Undo', 'Redo'] },
                     { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
-                    { name: 'insert', items: ['Mathjax', 'SpecialChar'] },
+                    { name: 'insert', items: ['Mathjax', 'VisualMath', 'SpecialChar'] },
                     { name: 'tools', items: ['Maximize'] }
                 ],
                 removeButtons: ''
