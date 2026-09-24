@@ -72,7 +72,13 @@ class ResultController extends Controller
     {
         abort_unless($request->user()->isAdmin() || $request->user()->isGuru(), 403);
         
-        $attempt = ExamAttempt::with(['exam.mataPelajaran', 'exam.kelasData', 'siswa.kelasData', 'siswa.user'])->findOrFail($id);
+        $attempt = ExamAttempt::with([
+            'exam.mataPelajaran', 
+            'exam.kelasData', 
+            'siswa.kelasData', 
+            'siswa.user',
+            'answers.question'
+        ])->findOrFail($id);
         
         if ($request->user()->isGuru()) {
             abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke hasil ujian ini.');
@@ -87,10 +93,16 @@ class ResultController extends Controller
             ->latest('started_at')
             ->get();
             
+        // Urutkan jawaban berdasarkan urutan soal
+        $answers = $attempt->answers->sortBy(function($answer) {
+            return $answer->question->urutan ?? 9999;
+        });
+            
         return view('hasil.show', [
             'attempt' => $attempt,
             'siswa' => $attempt->siswa,
             'riwayatUjian' => $riwayatUjian,
+            'answers' => $answers,
         ]);
     }
 }

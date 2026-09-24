@@ -31,6 +31,11 @@
                     <td class="py-1 uppercase">{{ $student->nama }}</td>
                 </tr>
                 <tr>
+                    <td class="py-1 align-top">NISN</td>
+                    <td class="py-1 align-top">:</td>
+                    <td class="py-1">{{ $student->nisn ?? '-' }}</td>
+                </tr>
+                <tr>
                     <td class="py-1 align-top">Kelas</td>
                     <td class="py-1 align-top">:</td>
                     <td class="py-1">{{ $kelas->nama_kelas }}</td>
@@ -50,6 +55,11 @@
                     <td class="py-1 align-top text-blue-700">Username CBT</td>
                     <td class="py-1 align-top text-blue-700">:</td>
                     <td class="py-1 text-blue-700">{{ $student->user->email }}</td>
+                </tr>
+                <tr>
+                    <td class="py-1 align-top text-blue-700">Password CBT</td>
+                    <td class="py-1 align-top text-blue-700">:</td>
+                    <td class="py-1 text-blue-700">12345678</td>
                 </tr>
                 @endif
             </tbody>

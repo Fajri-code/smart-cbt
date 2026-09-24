@@ -247,6 +247,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
         
     Route::get('/hasil-ujian/export/siswa/{siswa}', [\App\Http\Controllers\ExportController::class, 'exportHasilSiswa'])
         ->name('hasil.export.siswa');
+        
+    Route::get('/hasil-ujian/export/rekap/{attempt}', [\App\Http\Controllers\ExportController::class, 'exportRekapJawaban'])
+        ->name('hasil.export.rekap');
 
     Route::get('/hasil-ujian', [ResultController::class, 'index'])
         ->name('hasil.index');
@@ -392,6 +395,9 @@ Route::middleware(['auth', 'guru'])
             
         Route::get('/hasil-ujian/export/siswa/{siswa}', [\App\Http\Controllers\ExportController::class, 'exportHasilSiswa'])
             ->name('hasil.export.siswa');
+            
+        Route::get('/hasil-ujian/export/rekap/{attempt}', [\App\Http\Controllers\ExportController::class, 'exportRekapJawaban'])
+            ->name('hasil.export.rekap');
 
         Route::get('/hasil-ujian', [ResultController::class, 'index'])
             ->name('hasil.index');
