@@ -60,6 +60,35 @@
             </div>
         </div>
         <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"><h3 class="font-semibold text-slate-900">Tambah Soal ke Bank</h3><form class="mt-4 grid gap-4 md:grid-cols-2" method="POST" action="{{ route('guru.bank.question.store', $bank) }}">@csrf<select class="rounded-md border-slate-300" name="tipe" required><option value="pg">Pilihan Ganda</option><option value="essay_1">Essay Bagian 1</option><option value="essay_2">Essay Bagian 2</option></select><input class="rounded-md border-slate-300" name="bobot" type="number" min="0" step="0.01" value="1" required><textarea class="md:col-span-2 rounded-md border-slate-300" name="pertanyaan" rows="3" placeholder="Pertanyaan" required></textarea><textarea class="md:col-span-2 rounded-md border-slate-300" name="petunjuk_jawaban" rows="2" placeholder="Petunjuk jawaban essay (opsional)"></textarea><div class="grid gap-3 sm:grid-cols-5 md:col-span-2">@foreach (['a','b','c','d','e'] as $option)<input class="rounded-md border-slate-300" name="opsi_{{ $option }}" placeholder="Opsi {{ strtoupper($option) }}">@endforeach</div><select class="rounded-md border-slate-300" name="kunci"><option value="">Tanpa kunci</option>@foreach (['A','B','C','D','E'] as $key)<option>{{ $key }}</option>@endforeach</select><div><button class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white" type="submit">Simpan ke Bank</button></div></form></div>
-        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-3">Tipe</th><th class="px-6 py-3">Pertanyaan</th><th class="px-6 py-3">Pilihan Jawaban</th><th class="px-6 py-3">Kunci</th><th class="px-6 py-3">Bobot</th><th class="px-6 py-3">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($questions as $question)<tr><td class="px-6 py-4">{{ strtoupper(str_replace('_', ' ', $question->tipe)) }}</td><td class="max-w-2xl px-6 py-4">{{ Str::limit($question->pertanyaan, 140) }}</td><td class="px-6 py-4"><div class="space-y-1 text-xs">@foreach (['a', 'b', 'c', 'd', 'e'] as $option)@if ($question->{'opsi_'.$option})<p><span class="font-semibold">{{ strtoupper($option) }}.</span> {{ $question->{'opsi_'.$option} }}</p>@endif @endforeach</div></td><td class="px-6 py-4 font-semibold">{{ $question->kunci ?: '-' }}</td><td class="px-6 py-4">{{ $question->bobot }}</td><td class="px-6 py-4"><form method="POST" action="{{ route('guru.bank.question.destroy', [$bank, $question]) }}">@csrf @method('DELETE')<button class="text-red-600" type="submit">Hapus</button></form></td></tr>@empty<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada soal dalam bank ini.</td></tr>@endforelse</tbody></table></div><div class="p-6">{{ $questions->links() }}</div></div>
+        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-3">Tipe</th><th class="px-6 py-3">Pertanyaan</th><th class="px-6 py-3">Pilihan Jawaban</th><th class="px-6 py-3">Kunci</th><th class="px-6 py-3">Bobot</th><th class="px-6 py-3">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($questions as $question)<tr><td class="px-6 py-4">{{ strtoupper(str_replace('_', ' ', $question->tipe)) }}</td><td class="max-w-2xl px-6 py-4">{!! Str::limit(strip_tags($question->pertanyaan), 140) !!}</td><td class="px-6 py-4"><div class="space-y-1 text-xs">@foreach (['a', 'b', 'c', 'd', 'e'] as $option)@if ($question->{'opsi_'.$option})<p><span class="font-semibold">{{ strtoupper($option) }}.</span> {!! strip_tags($question->{'opsi_'.$option}) !!}</p>@endif @endforeach</div></td><td class="px-6 py-4 font-semibold">{{ $question->kunci ?: '-' }}</td><td class="px-6 py-4">{{ $question->bobot }}</td><td class="px-6 py-4"><form method="POST" action="{{ route('guru.bank.question.destroy', [$bank, $question]) }}">@csrf @method('DELETE')<button class="text-red-600" type="submit">Hapus</button></form></td></tr>@empty<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada soal dalam bank ini.</td></tr>@endforelse</tbody></table></div><div class="p-6">{{ $questions->links() }}</div></div>
     </div></div>
 </x-app-layout>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '', right: '', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError : false
+        });
+        
+        // Also render Quill formulas if they aren't pre-rendered
+        document.querySelectorAll('.ql-formula').forEach(el => {
+            if (el.getAttribute('data-value') && !el.querySelector('.katex')) {
+                katex.render(el.getAttribute('data-value'), el, { throwOnError: false });
+            }
+        });
+    });
+</script>
+<style>
+    .prose img { max-width: 100%; height: auto; border-radius: 0.375rem; }
+</style>
+

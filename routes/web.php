@@ -278,6 +278,8 @@ Route::middleware(['auth', 'guru'])
     ->prefix('guru')
     ->name('guru.')
     ->group(function () {
+        
+        Route::post('/upload-image', [\App\Http\Controllers\ImageUploadController::class, 'upload'])->name('upload.image');
 
         /*
         |--------------------------------------------------------------------------

@@ -78,9 +78,7 @@
                             </div>
 
                             <div class="prose prose-slate mt-5 max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-xl prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-td:border prose-td:border-slate-200 prose-td:p-2">
-                                <p class="whitespace-pre-line text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-lg">
-                                    {{ $question->pertanyaan }}
-                                </p>
+                                <div class="text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-lg overflow-x-auto">{!! $question->pertanyaan !!}</div>
                             </div>
 
                             @if ($question->tipe === 'pg')
@@ -95,8 +93,7 @@
                                                        data-question-id="{{ $question->id }}"
                                                        @checked(($answers[$question->id] ?? '') === strtoupper($option))>
                                                 <span class="text-[15px] sm:text-base">
-                                                    <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>
-                                                    {{ $question->{'opsi_'.$option} }}
+                                                    <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>{!! $question->{'opsi_'.$option} !!}
                                                 </span>
                                             </label>
                                         @endif
@@ -663,3 +660,32 @@
     </script>
 </body>
 </html>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '', right: '', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError : false
+        });
+        
+        // Also render Quill formulas if they aren't pre-rendered
+        document.querySelectorAll('.ql-formula').forEach(el => {
+            if (el.getAttribute('data-value') && !el.querySelector('.katex')) {
+                katex.render(el.getAttribute('data-value'), el, { throwOnError: false });
+            }
+        });
+    });
+</script>
+<style>
+    .prose img { max-width: 100%; height: auto; border-radius: 0.375rem; }
+</style>
+
