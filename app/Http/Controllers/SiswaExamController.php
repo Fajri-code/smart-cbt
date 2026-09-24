@@ -156,9 +156,15 @@ class SiswaExamController extends Controller
         
         if ($ujian->acak_soal) {
             $questions = $ujian->questions->all();
-            mt_srand(crc32($attempt->id));
-            shuffle($questions);
-            mt_srand();
+            if (class_exists(\Random\Randomizer::class)) {
+                $engine = new \Random\Engine\Mt19937(crc32($attempt->id));
+                $randomizer = new \Random\Randomizer($engine);
+                $questions = $randomizer->shuffleArray($questions);
+            } else {
+                mt_srand(crc32($attempt->id));
+                shuffle($questions);
+                mt_srand();
+            }
             $ujian->setRelation('questions', collect($questions));
         }
 
