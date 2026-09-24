@@ -1,48 +1,120 @@
 services:
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: smart-cbt-app
-    restart: unless-stopped
-    environment:
-      PHP_CLI_SERVER_WORKERS: 4
-    working_dir: /var/www
+    restart: always
+    working_dir: /var/www/html
     volumes:
-      - ./:/var/www
-      - /var/www/node_modules
-      - /var/www/vendor
-    ports:
-      - "8001:8000"
+      - smart-cbt-storage:/var/www/html/storage/app/public
+      - smart-cbt-cache:/var/www/html/bootstrap/cache
+      - smart-cbt-public:/var/www/html/public
+    environment:
+      - APP_NAME=Smart-CBT
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL:-http://localhost:8008}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-smart_cbt}
+      - DB_USERNAME=${DB_USERNAME:-smart_cbt}
+      - DB_PASSWORD=${DB_PASSWORD:-smart_cbt_password}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=smart-redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - REDIS_DB=1
+      - REDIS_PREFIX=smart_cbt_
     depends_on:
       db:
         condition: service_healthy
-    command: sh -lc "composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -4 -fsS --max-time 3 http://127.0.0.1:8000/robots.txt || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+    networks:
+      - smart-network
 
   db:
     image: postgres:16
     container_name: smart-cbt-db
-    restart: unless-stopped
+    restart: always
     environment:
-      POSTGRES_DB: smart_cbt
-      POSTGRES_USER: smart_cbt
-      POSTGRES_PASSWORD: smart_cbt_password
+      POSTGRES_DB: ${DB_DATABASE:-smart_cbt}
+      POSTGRES_USER: ${DB_USERNAME:-smart_cbt}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-smart_cbt_password}
     ports:
       - "5433:5432"
     volumes:
-      - smart_cbt_pgdata:/var/lib/postgresql/data
+      - smart-cbt-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U smart_cbt -d smart_cbt"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-smart_cbt} -d ${DB_DATABASE:-smart_cbt}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - smart-network
+
+  web:
+    image: nginx:alpine
+    container_name: smart-cbt-web
+    restart: always
+    ports:
+      - "${CBT_WEB_PORT:-8008}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - smart-cbt-public:/var/www/html/public
+      - smart-cbt-storage:/var/www/html/storage/app/public
+    depends_on:
+      - app
+    networks:
+      - smart-network
+
+  # Task Scheduler untuk auto-rotate token ujian (sesuai bootstrap/app.php)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smart-cbt-scheduler
+    restart: always
+    working_dir: /var/www/html
+    command: php artisan schedule:work
+    volumes:
+      - smart-cbt-storage:/var/www/html/storage/app/public
+      - smart-cbt-cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_NAME=Smart-CBT
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL:-http://localhost:8008}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-smart_cbt}
+      - DB_USERNAME=${DB_USERNAME:-smart_cbt}
+      - DB_PASSWORD=${DB_PASSWORD:-smart_cbt_password}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=smart-redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - REDIS_DB=1
+      - REDIS_PREFIX=smart_cbt_
+    depends_on:
+      - app
+    networks:
+      - smart-network
 
 volumes:
-  smart_cbt_pgdata:
+  smart-cbt-storage:
+  smart-cbt-cache:
+  smart-cbt-public:
+  smart-cbt-pgdata:
+
+networks:
+  smart-network:
+    external: true
+    name: tailadmin-laravel-main_smart-network
