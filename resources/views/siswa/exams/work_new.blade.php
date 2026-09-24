@@ -6,6 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $exam->nama }} - SMART CBT</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+<script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']], processEscapes: true }
+        });
+    </script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800" x-data="{ zoomImage: null }">
     <div x-data="{ navOpen: false }" @keydown.escape.window="navOpen = false">

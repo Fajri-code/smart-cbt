@@ -59,7 +59,7 @@
                 </div>
             </div>
         </div>
-        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"><h3 class="font-semibold text-slate-900">Tambah Soal ke Bank</h3><form class="mt-4 grid gap-4 md:grid-cols-2" method="POST" action="{{ route('guru.bank.question.store', $bank) }}" enctype="multipart/form-data">@csrf<select class="rounded-md border-slate-300" name="tipe" required><option value="pg">Pilihan Ganda</option><option value="essay_1">Essay Bagian 1</option><option value="essay_2">Essay Bagian 2</option></select><input class="rounded-md border-slate-300" name="bobot" type="number" min="0" step="0.01" value="1" required><textarea class="md:col-span-2 rounded-md border-slate-300" name="pertanyaan" rows="3" placeholder="Pertanyaan" required></textarea>
+        <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"><h3 class="font-semibold text-slate-900">Tambah Soal ke Bank</h3><form class="mt-4 grid gap-4 md:grid-cols-2" method="POST" action="{{ route('guru.bank.question.store', $bank) }}" enctype="multipart/form-data">@csrf<select class="rounded-md border-slate-300" name="tipe" required><option value="pg">Pilihan Ganda</option><option value="essay_1">Essay Bagian 1</option><option value="essay_2">Essay Bagian 2</option></select><input class="rounded-md border-slate-300" name="bobot" type="number" min="0" step="0.01" value="1" required><textarea class="md:col-span-2 rounded-md border-slate-300" id="pertanyaan" name="pertanyaan" rows="3" placeholder="Pertanyaan" required></textarea>
 <div class="md:col-span-2" x-data="{ imgPreview: null }">
     <label class="block text-xs font-semibold text-slate-700 mb-1">Gambar Soal (Opsional)</label>
     <input type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/webp, image/gif, image/svg+xml" class="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100" @change="const file = $event.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = (e) => { imgPreview = e.target.result; }; reader.readAsDataURL(file); } else { imgPreview = null; }">
@@ -69,9 +69,41 @@
             <button type="button" @click="imgPreview = null; $el.parentElement.parentElement.querySelector('input[type=file]').value = '';" class="text-xs text-rose-600 font-bold block mt-1">Batal</button>
         </div>
     </template>
-</div><textarea class="md:col-span-2 rounded-md border-slate-300" name="petunjuk_jawaban" rows="2" placeholder="Petunjuk jawaban essay (opsional)"></textarea><div class="grid gap-3 sm:grid-cols-5 md:col-span-2">@foreach (['a','b','c','d','e'] as $option)<input class="rounded-md border-slate-300" name="opsi_{{ $option }}" placeholder="Opsi {{ strtoupper($option) }}">@endforeach</div><select class="rounded-md border-slate-300" name="kunci"><option value="">Tanpa kunci</option>@foreach (['A','B','C','D','E'] as $key)<option>{{ $key }}</option>@endforeach</select><div><button class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white" type="submit">Simpan ke Bank</button></div></form></div>
+</div><textarea class="md:col-span-2 rounded-md border-slate-300" id="petunjuk_jawaban" name="petunjuk_jawaban" rows="2" placeholder="Petunjuk jawaban essay (opsional)"></textarea><div class="grid gap-3 sm:grid-cols-5 md:col-span-2">@foreach (['a','b','c','d','e'] as $option)<input class="rounded-md border-slate-300" name="opsi_{{ $option }}" placeholder="Opsi {{ strtoupper($option) }}">@endforeach</div><select class="rounded-md border-slate-300" name="kunci"><option value="">Tanpa kunci</option>@foreach (['A','B','C','D','E'] as $key)<option>{{ $key }}</option>@endforeach</select><div><button class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white" type="submit">Simpan ke Bank</button></div></form></div>
         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"><div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th class="px-6 py-3">Tipe</th><th class="px-6 py-3">Pertanyaan</th><th class="px-6 py-3">Pilihan Jawaban</th><th class="px-6 py-3">Kunci</th><th class="px-6 py-3">Bobot</th><th class="px-6 py-3">Aksi</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($questions as $question)<tr><td class="px-6 py-4">{{ strtoupper(str_replace('_', ' ', $question->tipe)) }}</td><td class="max-w-2xl px-6 py-4">@if($question->image) <span title="Ada Gambar" class="text-blue-500 mr-1">🖼️</span> @endif {{ Str::limit($question->pertanyaan, 140) }}</td><td class="px-6 py-4"><div class="space-y-1 text-xs">@foreach (['a', 'b', 'c', 'd', 'e'] as $option)@if ($question->{'opsi_'.$option})<p><span class="font-semibold">{{ strtoupper($option) }}.</span> {{ $question->{'opsi_'.$option} }}</p>@endif @endforeach</div></td><td class="px-6 py-4 font-semibold">{{ $question->kunci ?: '-' }}</td><td class="px-6 py-4">{{ $question->bobot }}</td><td class="px-6 py-4"><form method="POST" action="{{ route('guru.bank.question.destroy', [$bank, $question]) }}">@csrf @method('DELETE')<button class="text-red-600" type="submit">Hapus</button></form></td></tr>@empty<tr><td colspan="6" class="px-6 py-12 text-center text-slate-500">Belum ada soal dalam bank ini.</td></tr>@endforelse</tbody></table></div><div class="p-6">{{ $questions->links() }}</div></div>
     </div></div>
+
+    @push('scripts')
+    <script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ckeditorConfig = {
+                extraPlugins: 'mathjax',
+                mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML',
+                height: 150,
+                toolbar: [
+                    { name: 'document', items: ['Source'] },
+                    { name: 'clipboard', items: ['Undo', 'Redo'] },
+                    { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline'] },
+                    { name: 'insert', items: ['Mathjax', 'SpecialChar'] },
+                    { name: 'tools', items: ['Maximize'] }
+                ],
+                removeButtons: ''
+            };
+
+            if(document.getElementById('pertanyaan')) CKEDITOR.replace('pertanyaan', ckeditorConfig);
+            
+            const options = ['a', 'b', 'c', 'd', 'e'];
+            options.forEach(function(opt) {
+                if (document.getElementById('opsi_' + opt)) {
+                    let config = Object.assign({}, ckeditorConfig);
+                    config.height = 80;
+                    CKEDITOR.replace('opsi_' + opt, config);
+                }
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout>
 
 
