@@ -357,6 +357,10 @@
                 });
 
                 if (!response.ok) {
+                    if (response.status === 419 || response.status === 401 || response.status === 403) {
+                        alert("Sesi Anda telah kadaluarsa atau login di perangkat lain terdeteksi. Jawaban terakhir Anda sudah aman di memori browser.\n\nSilakan REFRESH / MUAT ULANG halaman ini sekarang.");
+                        throw new Error("Session Expired");
+                    }
                     throw new Error(`Server error: ${response.status}`);
                 }
 
@@ -380,7 +384,7 @@
                 state.savingError = error.message;
 
                 // Retry dengan exponential backoff
-                if (attempt < CONFIG.MAX_RETRIES) {
+                if (error.message !== "Session Expired" && attempt < CONFIG.MAX_RETRIES) {
                     state.retryCount = attempt + 1;
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
                     return saveBatchAnswers(answers, attempt + 1);
@@ -492,7 +496,11 @@
                 console.error('Submit error:', error);
                 elements.finish.disabled = false;
                 elements.finish.textContent = 'Kumpulkan Ujian';
-                alert('Gagal menyimpan jawaban. Silakan coba lagi.');
+                if (error.message === "Session Expired") {
+                    alert("Gagal mengumpulkan ujian karena sesi Anda telah berakhir.\n\nSilakan REFRESH / MUAT ULANG halaman ini.");
+                } else {
+                    alert("Jawaban belum berhasil tersimpan ke server akibat gangguan koneksi. Cek koneksi Anda dan coba lagi.");
+                }
                 state.isSubmitting = false;
             }
         }
@@ -681,6 +689,7 @@
     </template>
 </body>
 </html>
+
 
 
 
