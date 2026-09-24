@@ -112,7 +112,7 @@
                     <div class="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-end">
                         <a href="{{ route('kartu-ujian.index') }}" class="inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 sm:w-auto">Reset</a>
                         @if ($namaUjian && $selectedClass && $ruangan && $participantCount > 0)
-                            <button type="submit" formmethod="POST" formaction="{{ route('kartu-ujian.preview') }}" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 sm:w-auto">
+                            <button type="submit" formmethod="GET" formaction="{{ route('kartu-ujian.preview') }}" class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 sm:w-auto">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 {{ $printStatus ? 'Cetak Ulang' : 'Buat & Preview Kartu' }}
                             </button>

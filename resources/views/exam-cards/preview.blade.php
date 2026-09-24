@@ -7,8 +7,8 @@
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('kartu-ujian.index', ['nama_ujian' => $namaUjian, 'ruangan' => $ruangan, 'kelas_id' => $kelas->id]) }}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Kembali</a>
-                <form action="{{ route('kartu-ujian.pdf') }}" method="POST" class="inline">
-                    @csrf
+                <form action="{{ route('kartu-ujian.pdf') }}" method="GET" class="inline">
+                    
                     <input type="hidden" name="nama_ujian" value="{{ $namaUjian }}">
                     <input type="hidden" name="ruangan" value="{{ $ruangan }}">
                     <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
