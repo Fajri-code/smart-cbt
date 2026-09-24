@@ -19,7 +19,7 @@ class ResultController extends Controller
         if ($request->user()->isGuru()) {
             $guruId = $request->user()->guru?->id;
             abort_unless($guruId, 403);
-            $query->whereHas('exam', fn ($exam) => $exam->where('guru_id', $guruId));
+            $query->whereHas('exam', fn ($exam) => $exam->where(fn ($q) => $q->where('guru_id', $guruId)->orWhere('guru_pengawas_id', $guruId)));
         }
 
         $query->when($request->filled('search_siswa'), function ($query) use ($request) {
@@ -42,7 +42,7 @@ class ResultController extends Controller
         $nilaiTertinggi = (clone $query)->whereNotNull('nilai_akhir')->max('nilai_akhir');
 
         $examOptions = Exam::query()
-            ->when($request->user()->isGuru(), fn ($exam) => $exam->where('guru_id', $request->user()->guru?->id))
+            ->when($request->user()->isGuru(), fn ($exam) => $exam->where(fn ($q) => $q->where('guru_id', $request->user()->guru?->id)->orWhere('guru_pengawas_id', $request->user()->guru?->id)))
             ->orderBy('nama')
             ->get(['id', 'nama']);
         $kelasOptions = Kelas::query()->orderBy('nama_kelas')->get(['id', 'nama_kelas']);
@@ -50,7 +50,7 @@ class ResultController extends Controller
         $tahunAjaranOptions = Exam::query()
             ->whereNotNull('tahun_ajaran')
             ->where('tahun_ajaran', '!=', '')
-            ->when($request->user()->isGuru(), fn ($exam) => $exam->where('guru_id', $request->user()->guru?->id))
+            ->when($request->user()->isGuru(), fn ($exam) => $exam->where(fn ($q) => $q->where('guru_id', $request->user()->guru?->id)->orWhere('guru_pengawas_id', $request->user()->guru?->id)))
             ->distinct()
             ->orderByDesc('tahun_ajaran')
             ->pluck('tahun_ajaran');
@@ -81,14 +81,14 @@ class ResultController extends Controller
         ])->findOrFail($id);
         
         if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke hasil ujian ini.');
+            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id || $attempt->exam->guru_pengawas_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke hasil ujian ini.');
         }
         
         $riwayatUjian = ExamAttempt::with(['exam.mataPelajaran', 'exam.kelasData'])
             ->where('siswa_id', $attempt->siswa_id)
             ->when($request->user()->isGuru(), function ($query) use ($request) {
                 // Jika guru yang lihat, hanya tampilkan riwayat ujian yang diawasi/dibuat guru tsb
-                $query->whereHas('exam', fn ($q) => $q->where('guru_id', $request->user()->guru?->id));
+                $query->whereHas('exam', fn ($q) => $q->where(fn ($sq) => $sq->where('guru_id', $request->user()->guru?->id)->orWhere('guru_pengawas_id', $request->user()->guru?->id)));
             })
             ->latest('started_at')
             ->get();
