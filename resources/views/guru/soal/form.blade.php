@@ -36,7 +36,8 @@
 
     <div class="py-8" x-data="{
         tipe: '{{ old('tipe', $question->tipe ?: ($allowedTypes[0] ?? 'pg')) }}',
-        kunci: '{{ old('kunci', $question->kunci ?? 'A') }}'
+        kunci: '{{ old('kunci', $question->kunci ?? 'A') }}',
+        imagePreview: null
     }">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -124,8 +125,20 @@
                                    id="image" 
                                    name="image" 
                                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                                   @change="const file = $event.target.files[0]; if(file){ const reader = new FileReader(); reader.onload = (e) => { imagePreview = e.target.result; }; reader.readAsDataURL(file); } else { imagePreview = null; }"
                                    class="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100">
                             <p class="mt-1 text-[10px] text-slate-400">Format: JPG, PNG, WEBP. Maks 2MB.</p>
+                            
+                            {{-- PREVIEW GAMBAR BARU --}}
+                            <template x-if="imagePreview">
+                                <div class="mt-4 relative inline-block rounded-xl border border-emerald-100 bg-emerald-50 p-3 shadow-sm">
+                                    <p class="text-[11px] font-bold text-emerald-800 mb-2 uppercase tracking-wide">Preview Gambar Baru:</p>
+                                    <img :src="imagePreview" class="max-h-48 w-auto rounded border border-slate-200 bg-white" alt="Preview Gambar">
+                                    <button type="button" @click="imagePreview = null; document.getElementById('image').value = '';" class="mt-2 text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline">
+                                        Batal & Hapus
+                                    </button>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
