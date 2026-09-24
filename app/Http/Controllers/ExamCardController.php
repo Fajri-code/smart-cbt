@@ -7,6 +7,8 @@ use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\ExamCardSetting;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ExamCardSetting;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -48,6 +50,43 @@ class ExamCardController extends Controller
             'students',
             'printStatus'
         ));
+    }
+
+        public function settings(Request $request)
+    {
+        $setting = ExamCardSetting::first() ?? new ExamCardSetting();
+
+        if ($request->isMethod('post')) {
+            $data = $request->validate([
+                'header_1' => 'nullable|string',
+                'header_2' => 'nullable|string',
+                'header_3' => 'nullable|string',
+                'header_4' => 'nullable|string',
+                'judul_kartu' => 'nullable|string',
+                'tempat_tanggal' => 'nullable|string',
+                'jabatan_penandatangan' => 'nullable|string',
+                'nama_penandatangan' => 'nullable|string',
+                'nip_penandatangan' => 'nullable|string',
+                'logo_kiri' => 'nullable|image|max:2048',
+                'ttd_image' => 'nullable|image|max:2048',
+            ]);
+
+            if ($request->hasFile('logo_kiri')) {
+                if ($setting->logo_kiri) Storage::disk('public')->delete($setting->logo_kiri);
+                $data['logo_kiri'] = $request->file('logo_kiri')->store('exam-cards', 'public');
+            }
+            if ($request->hasFile('ttd_image')) {
+                if ($setting->ttd_image) Storage::disk('public')->delete($setting->ttd_image);
+                $data['ttd_image'] = $request->file('ttd_image')->store('exam-cards', 'public');
+            }
+
+            $setting->fill($data);
+            $setting->save();
+
+            return back()->with('success', 'Pengaturan kartu ujian berhasil disimpan beserta history pembuatannya.');
+        }
+
+        return view('exam-cards.settings', compact('setting'));
     }
 
     public function preview(Request $request): View
