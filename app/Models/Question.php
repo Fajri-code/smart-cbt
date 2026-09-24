@@ -13,6 +13,7 @@ class Question extends Model
         'exam_id',
         'tipe',
         'pertanyaan',
+        'image',
         'petunjuk_jawaban',
         'opsi_a',
         'opsi_b',
