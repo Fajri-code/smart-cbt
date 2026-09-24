@@ -18,55 +18,7 @@ class ExportController extends Controller
         // Otorisasi: Admin boleh semua. Guru hanya boleh ujian miliknya.
         if ($request->user()->isGuru()) {
             abort_unless($ujian->guru_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke ujian ini.');
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $questions = $ujian->questions()->orderBy('urutan')->get();
         $fileName = 'soal_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $ujian->nama) . '.xlsx';
@@ -84,55 +36,7 @@ class ExportController extends Controller
                 'Bobot' => $question->bobot,
             ];
         });
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     /**
      * Export Soal Bank Soal
@@ -142,55 +46,7 @@ class ExportController extends Controller
         // Otorisasi: Admin boleh semua. Guru hanya boleh bank miliknya.
         if ($request->user()->isGuru()) {
             abort_unless($bankSoal->guru_id === $request->user()->guru?->id, 403, 'Anda tidak memiliki akses ke bank soal ini.');
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $questions = $bankSoal->questions()->get();
         $fileName = 'bank_soal_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $bankSoal->nama) . '.xlsx';
@@ -209,55 +65,7 @@ class ExportController extends Controller
                 'Bobot' => $question->bobot,
             ];
         });
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     /**
      * Helper Query untuk export hasil
@@ -270,55 +78,7 @@ class ExportController extends Controller
         if ($request->user()->isGuru()) {
             $guruId = $request->user()->guru?->id;
             $query->whereHas('exam', fn ($q) => $q->where('guru_id', $guruId));
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         // Apply filters
         $query->when($request->filled('exam_id'), fn ($q) => $q->where('exam_id', $request->integer('exam_id')))
@@ -331,55 +91,7 @@ class ExportController extends Controller
             ->when($request->filled('end_date'), fn ($q) => $q->whereDate('started_at', '<=', $request->date('end_date')));
 
         return $query;
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     private function getExportCallback()
     {
@@ -398,55 +110,7 @@ class ExportController extends Controller
                 'Waktu Selesai' => $attempt->submitted_at ? $attempt->submitted_at->format('Y-m-d H:i:s') : '-',
             ];
         };
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     /**
      * Export 1: Berdasarkan Kelas (Mewajibkan Ujian dan Kelas)
@@ -465,55 +129,7 @@ class ExportController extends Controller
         $attempts = $query->get();
         if ($attempts->isEmpty()) {
             return back()->with('error', 'Tidak ada data untuk diexport.');
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $exam = \App\Models\Exam::find($request->exam_id);
         $kelas = \App\Models\Kelas::find($request->kelas_id);
@@ -521,55 +137,7 @@ class ExportController extends Controller
         $fileName = 'hasil_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $exam->nama) . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $kelas->nama_kelas) . '.xlsx';
 
         return (new FastExcel($attempts))->download($fileName, $this->getExportCallback());
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     /**
      * Export 2: Berdasarkan Filter (Sesuai parameter di layar)
@@ -581,55 +149,7 @@ class ExportController extends Controller
         $attempts = $query->get();
         if ($attempts->isEmpty()) {
             return back()->with('error', 'Tidak ada data yang sesuai filter untuk diexport.');
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $fileName = 'hasil_filter_' . now()->format('Y-m-d_His') . '.xlsx';
         
@@ -641,106 +161,10 @@ class ExportController extends Controller
         } elseif ($request->filled('exam_id') && $request->filled('tahun_ajaran')) {
             $exam = \App\Models\Exam::find($request->exam_id);
             $fileName = 'hasil_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $exam->nama) . '_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $request->tahun_ajaran) . '.xlsx';
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         return (new FastExcel($attempts))->download($fileName, $this->getExportCallback());
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
 
     /**
      * Export 3: Berdasarkan Siswa Tertentu
@@ -754,108 +178,12 @@ class ExportController extends Controller
         if ($request->user()->isGuru()) {
             $guruId = $request->user()->guru?->id;
             $query->whereHas('exam', fn ($q) => $q->where('guru_id', $guruId));
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $attempts = $query->orderBy('started_at', 'desc')->get();
         if ($attempts->isEmpty()) {
             return back()->with('error', 'Siswa belum memiliki hasil ujian.');
-            /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
-    }
-}
-
 
         $fileName = 'nilai_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $siswa->nama) . '.xlsx';
 
@@ -874,55 +202,7 @@ class ExportController extends Controller
                 'Waktu Selesai' => $attempt->submitted_at ? $attempt->submitted_at->format('Y-m-d H:i:s') : '-',
             ];
         });
-        /**
-     * Export 4: Rekap Jawaban per Soal untuk satu Attempt
-     */
-    public function exportRekapJawaban(Request $request, $id)
-    {
-        $attempt = ExamAttempt::with([
-            'exam.mataPelajaran', 
-            'siswa', 
-            'answers.question'
-        ])->findOrFail($id);
-
-        if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
-        }
-
-        $answers = $attempt->answers->sortBy(function($answer) {
-            return $answer->question->urutan ?? 9999;
-        });
-
-        $data = [];
-        $no = 1;
-        foreach ($answers as $ans) {
-            $isCorrect = $ans->is_correct;
-            $hasAnswered = !empty($ans->jawaban);
-            
-            if (!$hasAnswered) {
-                $statusText = 'Tidak Dijawab';
-            } elseif ($ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg') {
-                $statusText = $isCorrect ? 'Benar' : 'Salah';
-            } else {
-                $statusText = $ans->sudah_dinilai ? 'Sudah Dinilai' : 'Belum Dinilai';
-            }
-
-            $data[] = [
-                'No' => $no++,
-                'Tipe Soal' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Jawaban Siswa' => $ans->jawaban ?: '-',
-                'Kunci' => $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)',
-                'Status' => $statusText,
-                'Skor' => $ans->skor ?? 0,
-            ];
-        }
-
-        $filename = 'Rekap_Jawaban_' . \Illuminate\Support\Str::slug($attempt->siswa->nama) . '_' . \Illuminate\Support\Str::slug($attempt->exam->nama) . '_' . date('YmdHis') . '.xlsx';
-
-        return (new FastExcel($data))->download($filename);
     }
-}
-
     /**
      * Export 4: Rekap Jawaban per Soal untuk satu Attempt
      */
@@ -935,7 +215,7 @@ class ExportController extends Controller
         ])->findOrFail($id);
 
         if ($request->user()->isGuru()) {
-            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
+            abort_unless($attempt->exam->guru_id === $request->user()->guru?->id || $attempt->exam->guru_pengawas_id === $request->user()->guru?->id, 403, 'Tidak ada akses.');
         }
 
         $answers = $attempt->answers->sortBy(function($answer) {
@@ -971,5 +251,3 @@ class ExportController extends Controller
         return (new FastExcel($data))->download($filename);
     }
 }
-
-
