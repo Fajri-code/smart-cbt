@@ -7,8 +7,6 @@ use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\ExamCardSetting;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ExamCardSetting;
-use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
