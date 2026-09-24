@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ExamCardPrint;
 use App\Models\Kelas;
 use App\Models\Siswa;
+use App\Models\ExamCardSetting;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -52,14 +54,16 @@ class ExamCardController extends Controller
     {
         [$namaUjian, $ruangan, $kelas, $students] = $this->cardData($request);
 
-        return view('exam-cards.preview', compact('namaUjian', 'ruangan', 'kelas', 'students'));
+        $setting = ExamCardSetting::first();
+        return view('exam-cards.preview', compact('namaUjian', 'ruangan', 'kelas', 'students', 'setting'));
     }
 
     public function pdf(Request $request)
     {
         [$namaUjian, $ruangan, $kelas, $students] = $this->cardData($request);
 
-        $pdf = Pdf::loadView('exam-cards.pdf', compact('namaUjian', 'ruangan', 'kelas', 'students'))
+        $setting = ExamCardSetting::first();
+        $pdf = Pdf::loadView('exam-cards.pdf', compact('namaUjian', 'ruangan', 'kelas', 'students', 'setting'))
             ->setPaper('a4', 'portrait');
             
         ExamCardPrint::updateOrCreate(

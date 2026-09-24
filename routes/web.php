@@ -262,6 +262,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::match(['get', 'post'], '/kartu-ujian/preview', [ExamCardController::class, 'preview'])
         ->name('kartu-ujian.preview');
+    Route::match(['get', 'post'], '/kartu-ujian/pengaturan', [App\Http\Controllers\ExamCardController::class, 'settings'])->name('kartu-ujian.settings');
 
     Route::match(['get', 'post'], '/kartu-ujian/pdf', [ExamCardController::class, 'pdf'])
         ->name('kartu-ujian.pdf');
@@ -424,3 +425,4 @@ Route::middleware(['auth', 'guru'])
 */
 
 require __DIR__.'/auth.php';
+

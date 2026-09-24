@@ -7,7 +7,7 @@
         @page { size: A4 portrait; margin: 12mm; }
         * { box-sizing: border-box; }
         body { color: #0f172a; font-family: DejaVu Sans, sans-serif; margin: 0; }
-        .card { border: 2px solid #1e293b; border-radius: 12px; height: 110mm; margin-bottom: 7mm; padding: 6mm; page-break-inside: avoid; position: relative; overflow: hidden; }
+        .card { border: 2px solid #1e293b; border-radius: 12px; height: 135mm; margin-bottom: 7mm; padding: 6mm; page-break-inside: avoid; position: relative; overflow: hidden; }
         .card:nth-child(2n) { page-break-after: always; }
         .card:last-child { page-break-after: auto; }
         .header { border-bottom: 2px solid #1e293b; padding-bottom: 12px; display: table; width: 100%; }
@@ -83,3 +83,4 @@
     @endforeach
 </body>
 </html>
+
