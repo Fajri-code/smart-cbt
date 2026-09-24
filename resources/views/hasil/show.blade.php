@@ -64,6 +64,19 @@
                                 @php
                                     $isCorrect = $ans->is_correct;
                                     $hasAnswered = !empty($ans->jawaban);
+                                    $isPG = $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg';
+                                    
+                                    $jawabanDisplay = $ans->jawaban ?: '-';
+                                    if ($hasAnswered && $isPG && in_array(strtolower($ans->jawaban), ['a','b','c','d','e'])) {
+                                        $field = 'opsi_' . strtolower($ans->jawaban);
+                                        $jawabanDisplay = strtoupper($ans->jawaban) . '. ' . Str::limit(strip_tags($ans->question->$field), 50);
+                                    }
+
+                                    $kunciDisplay = $ans->question->kunci ?: '-';
+                                    if ($isPG && !empty($ans->question->kunci) && in_array(strtolower($ans->question->kunci), ['a','b','c','d','e'])) {
+                                        $field = 'opsi_' . strtolower($ans->question->kunci);
+                                        $kunciDisplay = strtoupper($ans->question->kunci) . '. ' . Str::limit(strip_tags($ans->question->$field), 50);
+                                    }
                                     
                                     if (!$hasAnswered) {
                                         $statusText = 'Tidak Dijawab';
@@ -80,8 +93,8 @@
                                     <td class="px-5 py-4 text-center font-medium text-slate-900">{{ $index + 1 }}</td>
                                     <td class="px-5 py-4 text-slate-600">{{ $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay' }}</td>
                                 <td class="px-5 py-4"><div class="line-clamp-2 text-slate-600" title="{{ strip_tags($ans->question->pertanyaan) }}">{!! Str::limit(strip_tags($ans->question->pertanyaan), 100) !!}</div></td>
-                                    <td class="px-5 py-4 text-center font-bold text-slate-900">{{ $ans->jawaban ?: '-' }}</td>
-                                    <td class="px-5 py-4 text-center text-slate-600">{{ $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? ($ans->question->kunci ?: '-') : '(Essay)' }}</td>
+                                    <td class="px-5 py-4"><div class="font-bold text-slate-900">{{ $jawabanDisplay }}</div></td>
+                                    <td class="px-5 py-4 text-slate-600">{{ $isPG ? $kunciDisplay : '(Essay)' }}</td>
                                     <td class="px-5 py-4 text-center">
                                         <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">
                                             {{ $statusText }}
