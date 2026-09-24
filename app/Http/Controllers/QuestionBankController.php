@@ -125,6 +125,7 @@ class QuestionBankController extends Controller
                 'required',
                 'string'
             ],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
 
             'petunjuk_jawaban' => [
                 'nullable',

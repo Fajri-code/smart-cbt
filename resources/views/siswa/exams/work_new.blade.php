@@ -77,7 +77,12 @@
                                 </span>
                             </div>
 
-                            <div class="prose prose-slate mt-5 max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-xl prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-td:border prose-td:border-slate-200 prose-td:p-2">
+                            @if($question->image)
+                            <div class="mt-5 mb-4">
+                                <img src="{{ Storage::url($question->image) }}" class="max-h-80 w-auto rounded-xl border border-slate-200 shadow-sm" alt="Gambar Soal">
+                            </div>
+                            @endif
+                            <div class="prose prose-slate mt-2 max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-xl prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-td:border prose-td:border-slate-200 prose-td:p-2">
                                 <p class="whitespace-pre-line text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-lg">
                                     {{ $question->pertanyaan }}
                                 </p>
@@ -663,3 +668,4 @@
     </script>
 </body>
 </html>
+

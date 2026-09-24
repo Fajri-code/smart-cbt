@@ -69,11 +69,16 @@
                         </span>
                     </div>
 
-                    <div class="prose prose-slate mt-6 max-w-none">
-                        <p class="whitespace-pre-line text-lg font-semibold leading-relaxed text-slate-900">
-                            {{ $question->pertanyaan }}
-                        </p>
-                    </div>
+                    @if($question->image)
+                      <div class="mt-6 mb-4">
+                          <img src="{{ Storage::url($question->image) }}" class="max-h-80 w-auto rounded-xl border border-slate-200 shadow-sm" alt="Gambar Soal">
+                      </div>
+                      @endif
+                      <div class="prose prose-slate mt-2 max-w-none">
+                          <p class="whitespace-pre-line text-lg font-semibold leading-relaxed text-slate-900">
+                              {{ $question->pertanyaan }}
+                          </p>
+                      </div>
 
                     @if ($question->tipe === 'pg')
                         <div class="mt-7 space-y-3">

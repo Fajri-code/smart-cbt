@@ -594,10 +594,13 @@
 
 
                         {{-- PERTANYAAN --}}
-                        <div class="mt-3 whitespace-pre-line text-sm font-medium leading-relaxed text-slate-800">
-
+                        @if($question->image)
+                        <div class="mt-3 mb-2">
+                            <img src="{{ Storage::url($question->image) }}" class="max-h-64 rounded-lg border border-slate-200 shadow-sm" alt="Gambar Soal">
+                        </div>
+                        @endif
+                        <div class="mt-2 whitespace-pre-line text-sm font-medium leading-relaxed text-slate-800">
                             {{ $question->pertanyaan }}
-
                         </div>
 
 

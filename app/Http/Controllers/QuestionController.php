@@ -71,6 +71,10 @@ class QuestionController extends Controller
         $data = $this->validated($request, $ujian);
         $data['exam_id'] = $ujian->id;
         $data['urutan'] = ((int) $ujian->questions()->max('urutan')) + 1;
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('questions', 'public');
+        }
         Question::create($data);
         $ujian->prepareToken();
 
@@ -90,7 +94,22 @@ class QuestionController extends Controller
     {
         $this->owned($ujian, $request);
         abort_unless($soal->exam_id === $ujian->id, 404);
-        $soal->update($this->validated($request, $ujian));
+        
+        $data = $this->validated($request, $ujian);
+        
+        if ($request->input('remove_image')) {
+            if ($soal->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->image);
+            }
+            $data['image'] = null;
+        } elseif ($request->hasFile('image')) {
+            if ($soal->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->image);
+            }
+            $data['image'] = $request->file('image')->store('questions', 'public');
+        }
+        
+        $soal->update($data);
         $ujian->prepareToken();
 
         return to_route('guru.soal.index', $ujian)->with('success', 'Soal berhasil diperbarui.');
@@ -201,6 +220,8 @@ class QuestionController extends Controller
         return $request->validate([
             'tipe' => ['required', 'in:pg,essay_1,essay_2'],
             'pertanyaan' => ['required', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
             'petunjuk_jawaban' => ['nullable', 'string'],
             'opsi_a' => ['nullable', 'string'], 'opsi_b' => ['nullable', 'string'],
             'opsi_c' => ['nullable', 'string'], 'opsi_d' => ['nullable', 'string'], 'opsi_e' => ['nullable', 'string'],
@@ -233,3 +254,4 @@ class QuestionController extends Controller
         };
     }
 }
+

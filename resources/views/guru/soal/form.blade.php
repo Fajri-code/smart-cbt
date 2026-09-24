@@ -62,7 +62,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ $question->exists ? route('guru.soal.update', [$exam, $question]) : route('guru.soal.store', $exam) }}" class="space-y-6">
+                <form method="POST" action="{{ $question->exists ? route('guru.soal.update', [$exam, $question]) : route('guru.soal.store', $exam) }}" class="space-y-6" enctype="multipart/form-data">
                     @csrf
                     @if ($question->exists)
                         @method('PUT')
@@ -103,6 +103,30 @@
                                   required
                                   placeholder="Tuliskan butir soal pertanyaan di sini..."
                                   class="w-full rounded-xl border-slate-300 text-sm leading-relaxed text-slate-900 shadow-sm focus:border-amber-400 focus:ring-1 focus:ring-amber-400">{{ old('pertanyaan', $question->pertanyaan) }}</textarea>
+
+                        {{-- GAMBAR PERTANYAAN --}}
+                        <div class="mt-4">
+                            <label class="block text-xs font-bold text-slate-700 mb-1" for="image">
+                                🖼️ Tambah Gambar Soal (Opsional)
+                            </label>
+                            @if($question->image)
+                                <div class="mb-3 relative inline-block">
+                                    <img src="{{ Storage::url($question->image) }}" class="h-32 w-auto rounded-lg border border-slate-200 shadow-sm" alt="Gambar Soal">
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <label class="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                                            <input type="checkbox" name="remove_image" value="1" class="rounded border-rose-300 text-rose-600 focus:ring-rose-500">
+                                            Hapus Gambar Saat Ini
+                                        </label>
+                                    </div>
+                                </div>
+                            @endif
+                            <input type="file" 
+                                   id="image" 
+                                   name="image" 
+                                   accept="image/png, image/jpeg, image/jpg, image/webp"
+                                   class="block w-full text-xs text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100">
+                            <p class="mt-1 text-[10px] text-slate-400">Format: JPG, PNG, WEBP. Maks 2MB.</p>
+                        </div>
                     </div>
 
                     {{-- 3. PILIHAN GANDA (A, B, C, D, E) & KUNCI JAWABAN --}}
