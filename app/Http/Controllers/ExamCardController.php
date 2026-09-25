@@ -91,7 +91,7 @@ class ExamCardController extends Controller
     {
         [$namaUjian, $ruangan, $kelas, $students] = $this->cardData($request);
 
-        $setting = ExamCardSetting::first();
+        $setting = ExamCardSetting::first() ?? new ExamCardSetting();
         return view('exam-cards.preview', compact('namaUjian', 'ruangan', 'kelas', 'students', 'setting'));
     }
 
@@ -99,8 +99,11 @@ class ExamCardController extends Controller
     {
         [$namaUjian, $ruangan, $kelas, $students] = $this->cardData($request);
 
-        $setting = ExamCardSetting::first();
-        $pdf = Pdf::loadView('exam-cards.pdf', compact('namaUjian', 'ruangan', 'kelas', 'students', 'setting'))
+        $setting = ExamCardSetting::first() ?? new ExamCardSetting();
+        $logoBase64 = $this->getImageBase64($setting->logo_kiri);
+        $ttdBase64 = $this->getImageBase64($setting->ttd_image);
+
+        $pdf = Pdf::loadView('exam-cards.pdf', compact('namaUjian', 'ruangan', 'kelas', 'students', 'setting', 'logoBase64', 'ttdBase64'))
             ->setPaper('a4', 'portrait');
             
         ExamCardPrint::updateOrCreate(
@@ -111,6 +114,41 @@ class ExamCardController extends Controller
         $filename = 'kartu-ujian-'.Str::slug($kelas->nama_kelas).'-'.Str::slug($namaUjian).'.pdf';
 
         return $pdf->download($filename);
+    }
+
+    private function getImageBase64(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        try {
+            $cleanPath = ltrim(preg_replace('#^/?storage/#', '', $path), '/');
+
+            if (Storage::disk('public')->exists($cleanPath)) {
+                $content = Storage::disk('public')->get($cleanPath);
+                $mime = Storage::disk('public')->mimeType($cleanPath) ?: 'image/png';
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+
+            $publicPath = public_path('storage/' . $cleanPath);
+            if (file_exists($publicPath)) {
+                $content = file_get_contents($publicPath);
+                $mime = mime_content_type($publicPath) ?: 'image/png';
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+
+            $storageAppPath = storage_path('app/public/' . $cleanPath);
+            if (file_exists($storageAppPath)) {
+                $content = file_get_contents($storageAppPath);
+                $mime = mime_content_type($storageAppPath) ?: 'image/png';
+                return 'data:' . $mime . ';base64,' . base64_encode($content);
+            }
+        } catch (\Throwable $e) {
+            // Silently fallback
+        }
+
+        return null;
     }
 
     private function cardData(Request $request): array
