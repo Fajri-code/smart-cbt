@@ -395,11 +395,13 @@
                 // Retry dengan exponential backoff
                 if (error.message !== "Session Expired" && attempt < CONFIG.MAX_RETRIES) {
                     state.retryCount = attempt + 1;
+                    state.isSaving = false; // Allow the retry call to execute
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
                     return saveBatchAnswers(answers, attempt + 1);
                 } else {
                     // Max retries reached, keep answers in pending untuk manual retry
                     console.error('Max retries reached, answers kept in pending');
+                    throw error;
                 }
             } finally {
                 state.isSaving = false;
@@ -827,6 +829,8 @@
     </template>
 </body>
 </html>
+
+
 
 
 
