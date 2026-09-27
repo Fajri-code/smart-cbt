@@ -64,7 +64,7 @@
                         </div>
                     </div>
                 @endif
-                <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam) }}" class="space-y-5">
+                <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam, false) }}" class="space-y-5">
                     @csrf
                     
                     <!-- Hidden input to track pending state -->
@@ -353,9 +353,8 @@
             updateSaveStatus();
 
             try {
-                const response = await fetch('{{ route('siswa.ujian.answers', $exam) }}', {
+                const response = await fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                     method: 'POST',
-                    keepalive: true,
                     timeout: CONFIG.SAVE_TIMEOUT,
                     headers: {
                         'Content-Type': 'application/json',
@@ -599,7 +598,7 @@
                 formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
                 // Try fetch dengan keepalive (lebih reliable dari sendBeacon)
-                fetch('{{ route('siswa.ujian.answers', $exam) }}', {
+                fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                     method: 'POST',
                     keepalive: true,
                     headers: {
@@ -611,7 +610,7 @@
             }
 
             // Leave session
-            fetch('{{ route('siswa.ujian.leave', $exam) }}', {
+            fetch('{{ route('siswa.ujian.leave', $exam, false) }}', {
                 method: 'POST',
                 keepalive: true,
                 headers: {
@@ -829,6 +828,8 @@
     </template>
 </body>
 </html>
+
+
 
 
 
