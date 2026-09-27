@@ -147,7 +147,7 @@ class SiswaExamController extends Controller
         abort_unless($attempt?->status === 'in_progress', 403);
         abort_unless($request->session()->get($this->tokenSessionKey($ujian)) === $attempt->id, 403, 'Token ujian tidak valid.');
 
-        if ($this->deadline($attempt) <= now()) {
+        if ($this->deadline($attempt)->addMinutes(5) <= now()) {
             $this->submitAttempt($attempt, []);
             return to_route('siswa.ujian.result', $ujian)->with('success', 'Waktu habis. Jawaban telah dikumpulkan otomatis.');
         }
@@ -196,7 +196,7 @@ class SiswaExamController extends Controller
         abort_unless($attempt?->status === 'in_progress', 403);
         abort_unless($request->session()->get($this->tokenSessionKey($ujian)) === $attempt->id, 403, 'Token ujian tidak valid.');
 
-        if (now()->gte($this->deadline($attempt))) {
+        if (now()->gt($this->deadline($attempt)->addMinutes(10))) {
             return response()->json(['message' => 'Waktu ujian sudah berakhir.'], 403);
         }
 
@@ -210,7 +210,7 @@ class SiswaExamController extends Controller
                 return response()->json(['message' => 'Ujian sudah selesai.'], 403);
             }
 
-            if (now()->gte($this->deadline($lockedAttempt))) {
+            if (now()->gt($this->deadline($lockedAttempt)->addMinutes(10))) {
                 return response()->json(['message' => 'Waktu ujian sudah berakhir.'], 403);
             }
 

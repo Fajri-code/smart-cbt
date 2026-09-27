@@ -355,6 +355,7 @@
             try {
                 const response = await fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                     method: 'POST',
+                    keepalive: true,
                     timeout: CONFIG.SAVE_TIMEOUT,
                     headers: {
                         'Content-Type': 'application/json',
@@ -394,13 +395,11 @@
                 // Retry dengan exponential backoff
                 if (error.message !== "Session Expired" && attempt < CONFIG.MAX_RETRIES) {
                     state.retryCount = attempt + 1;
-                    state.isSaving = false; // Allow the retry call to execute
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
                     return saveBatchAnswers(answers, attempt + 1);
                 } else {
                     // Max retries reached, keep answers in pending untuk manual retry
                     console.error('Max retries reached, answers kept in pending');
-                    throw error;
                 }
             } finally {
                 state.isSaving = false;
@@ -513,6 +512,20 @@
             elements.finish.disabled = true;
             elements.finish.textContent = 'Menyimpan jawaban...';
 
+            // Sinkronkan seluruh pending answers ke input form sebelum submit
+            if (state.pendingAnswers && typeof state.pendingAnswers === 'object') {
+                Object.entries(state.pendingAnswers).forEach(([qId, val]) => {
+                    const radio = elements.form.querySelector(`input[name="answers[${qId}]"][value="${val}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                    const textarea = elements.form.querySelector(`textarea[name="answers[${qId}]"]`);
+                    if (textarea) {
+                        textarea.value = val;
+                    }
+                });
+            }
+
             try {
                 // Save semua pending answers dulu
                 await saveAllPendingAnswers();
@@ -531,7 +544,7 @@
 
                 const errorMsg = error.message === "Session Expired"
                     ? "Sesi ujian Anda telah berakhir atau akun aktif di perangkat lain. Silakan MUAT ULANG / REFRESH halaman ini."
-                    : "Gagal menyimpan jawaban ke server. Silakan periksa koneksi internet Anda lalu coba tekan Kumpulkan lagi.";
+                    : `Gagal menyimpan jawaban ke server (${error.message || 'Koneksi error'}). Silakan periksa koneksi internet Anda lalu coba tekan Kumpulkan lagi.`;
 
                 const bodyEl = document.querySelector('body');
                 if (window.Alpine && bodyEl) {
@@ -556,15 +569,31 @@
             overlay.innerHTML = '<div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.9);color:white;flex-direction:column;gap:1rem;"><svg class="h-16 w-16 text-rose-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><h2 class="text-2xl font-bold text-center">Waktu Ujian Telah Habis!</h2><p class="text-slate-300 text-center">Sistem sedang menyimpan jawaban Anda otomatis...</p></div>';
             document.body.appendChild(overlay.firstChild);
 
-            // Disable semua interaksi
+            // Disable tombol navigasi (overlay sudah memblokir klik user, jangan disable answerInputs agar data tetap terkirim via form submit)
             elements.previous.disabled = true;
             elements.next.disabled = true;
             elements.finish.disabled = true;
-            elements.answerInputs.forEach(input => input.disabled = true);
+
+            // Pastikan seluruh pending answers tersinkron ke input form
+            if (state.pendingAnswers && typeof state.pendingAnswers === 'object') {
+                Object.entries(state.pendingAnswers).forEach(([qId, val]) => {
+                    const radio = elements.form.querySelector(`input[name="answers[${qId}]"][value="${val}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                    const textarea = elements.form.querySelector(`textarea[name="answers[${qId}]"]`);
+                    if (textarea) {
+                        textarea.value = val;
+                    }
+                });
+            }
 
             try {
                 await saveAllPendingAnswers();
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                if (typeof clearPendingAnswersStorage === 'function') {
+                    clearPendingAnswersStorage();
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
             } catch (error) {
                 console.error('Error saving pending on time up:', error);
             }
@@ -828,10 +857,6 @@
     </template>
 </body>
 </html>
-
-
-
-
 
 
 
