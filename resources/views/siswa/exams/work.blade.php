@@ -435,7 +435,8 @@
                     try {
                         const response = await fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                             method: 'POST',
-                            keepalive: true,
+                            credentials: 'same-origin',
+                            
                             timeout: CONFIG.SAVE_TIMEOUT,
                             headers: {
                                 'Content-Type': 'application/json',
@@ -719,7 +720,8 @@
 
                 fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                     method: 'POST',
-                    keepalive: true,
+                            credentials: 'same-origin',
+                    
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -731,7 +733,8 @@
             // Leave session
             fetch('{{ route('siswa.ujian.leave', $exam, false) }}', {
                 method: 'POST',
-                keepalive: true,
+                            credentials: 'same-origin',
+                
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Accept': 'application/json',
