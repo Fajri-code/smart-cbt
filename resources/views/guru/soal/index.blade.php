@@ -599,7 +599,7 @@
                             <img src="{{ Storage::url($question->image) }}" class="max-h-64 rounded-lg border border-slate-200 shadow-sm" alt="Gambar Soal">
                         </div>
                         @endif
-                        <div class="mt-2 whitespace-pre-line text-sm font-medium leading-relaxed text-slate-800">
+                        <div class="mt-2 text-sm font-medium leading-relaxed text-slate-800 rich-text-content break-words">
                             {!! $question->pertanyaan !!}
                         </div>
 
@@ -618,13 +618,13 @@
                                         @endphp
 
 
-                                        <div class="flex items-center gap-2 rounded-lg px-3 py-2 transition
+                                        <div class="flex items-start gap-2.5 rounded-lg px-3 py-2 transition
                                             {{ $isKey
                                                 ? 'border border-emerald-200 bg-emerald-50 font-bold text-emerald-900'
                                                 : 'bg-slate-50 text-slate-700' }}">
 
                                             {{-- HURUF --}}
-                                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold
+                                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold mt-0.5
                                                 {{ $isKey
                                                     ? 'bg-emerald-600 text-white'
                                                     : 'bg-slate-200 text-slate-700' }}">
@@ -635,17 +635,17 @@
 
 
                                             {{-- ISI OPSI --}}
-                                            <span class="flex-1">
+                                            <div class="rich-text-content min-w-0 flex-1 break-words">
 
                                                 {!! $question->{'opsi_'.$option} !!}
 
-                                            </span>
+                                            </div>
 
 
                                             {{-- KUNCI BENAR --}}
                                             @if ($isKey)
 
-                                                <span class="rounded bg-emerald-100/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                                                <span class="shrink-0 rounded bg-emerald-100/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 mt-0.5">
 
                                                     ✓ Kunci Benar
 

@@ -92,9 +92,9 @@
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-5 py-4 text-center font-medium text-slate-900">{{ $index + 1 }}</td>
                                     <td class="px-5 py-4 text-slate-600">{{ $ans->question->tipe === 'pilihan_ganda' || $ans->question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay' }}</td>
-                                <td class="px-5 py-4"><div class="max-h-20 overflow-hidden text-slate-600 text-sm">{!! $ans->question->pertanyaan !!}</div></td>
-                                    <td class="px-5 py-4"><div class="text-slate-900 text-sm">{!! $jawabanDisplay !!}</div></td>
-                                    <td class="px-5 py-4 text-slate-600 text-sm">{!! $isPG ? $kunciDisplay : '(Essay)' !!}</td>
+                                    <td class="px-5 py-4"><div class="max-h-24 overflow-hidden text-slate-600 text-sm rich-text-content break-words">{!! $ans->question->pertanyaan !!}</div></td>
+                                    <td class="px-5 py-4"><div class="text-slate-900 text-sm rich-text-content break-words">{!! $jawabanDisplay !!}</div></td>
+                                    <td class="px-5 py-4 text-slate-600 text-sm rich-text-content break-words">{!! $isPG ? $kunciDisplay : '(Essay)' !!}</td>
                                     <td class="px-5 py-4 text-center">
                                         <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">
                                             {{ $statusText }}

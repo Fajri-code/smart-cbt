@@ -2,209 +2,419 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $exam->nama }} - SMART CBT</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-<script type="text/x-mathjax-config">
+    <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
             tex2jax: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']], processEscapes: true }
         });
     </script>
     <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        /* Standalone fallback styles to guarantee flawless rendering across all devices & WebViews */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        .option-label {
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            max-width: 100%;
+        }
+
+        .rich-text-content {
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            max-width: 100%;
+            line-height: 1.7;
+        }
+
+        .rich-text-content p {
+            margin-top: 0;
+            margin-bottom: 0.625rem;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .rich-text-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-content > p:only-child {
+            display: inline;
+            margin-bottom: 0;
+        }
+
+        .rich-text-content img {
+            max-width: 100% !important;
+            height: auto !important;
+            object-fit: contain;
+            border-radius: 0.5rem;
+            display: block;
+            margin: 0.5rem 0;
+        }
+
+        .rich-text-content table {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            border-collapse: collapse;
+            margin: 0.75rem 0;
+            background: #ffffff;
+        }
+
+        .rich-text-content table td,
+        .rich-text-content table th {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #cbd5e1;
+            font-size: 0.875rem;
+            min-width: 80px;
+            vertical-align: top;
+        }
+
+        .rich-text-content pre {
+            max-width: 100% !important;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .rich-text-content blockquote {
+            border-left: 4px solid #3b82f6;
+            background: #f8fafc;
+            padding: 0.625rem 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            color: #334155;
+            font-style: italic;
+        }
+
+        .rich-text-content ul {
+            list-style-type: disc;
+            margin-left: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rich-text-content ol {
+            list-style-type: decimal;
+            margin-left: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .MathJax_Display, .MathJax_Preview, .MathJax {
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800" 
-      x-data="{ zoomImage: null, showConfirmModal: false, unansweredCount: 0, pendingCount: 0, submitErrorMessage: null }"
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased" 
+      x-data="{ navOpen: false, zoomImage: null, showConfirmModal: false, unansweredCount: 0, pendingCount: 0, submitErrorMessage: null }"
+      @keydown.escape.window="navOpen = false"
       @open-submit-modal.window="unansweredCount = $event.detail.unansweredCount; pendingCount = $event.detail.pendingCount; showConfirmModal = true;"
       @close-submit-modal.window="showConfirmModal = false;">
-    <div x-data="{ navOpen: false }" @keydown.escape.window="navOpen = false">
-        <header class="sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm">
-            <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-                <!-- Hamburger (Mobile Only) -->
+    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2.5 sm:px-6 sm:py-3.5">
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-[10px] font-bold uppercase tracking-wider text-blue-600 sm:text-xs">
+                    {{ $exam->mataPelajaran?->nama }}
+                </p>
+                <h1 class="truncate text-sm font-black text-slate-900 sm:text-lg">
+                    {{ $exam->nama }}
+                </h1>
+            </div>
+
+            <div class="shrink-0 flex items-center gap-2 sm:gap-3">
+                <!-- Save Status & Connection Status (Desktop) -->
+                <div class="hidden flex-col items-end gap-0.5 sm:flex">
+                    <div id="save-status" class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold">
+                        <span id="save-status-text">--</span>
+                        <span id="save-status-icon" class="h-3.5 w-3.5"></span>
+                    </div>
+                    <div id="connection-status" class="text-right text-[10px] font-semibold text-emerald-600">Online</div>
+                </div>
+
+                <!-- Timer Badge -->
+                <div class="flex flex-col items-center rounded-xl bg-blue-50 px-2.5 py-1 text-center sm:px-4 sm:py-1.5 border border-blue-100">
+                    <span class="block text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-blue-600">Sisa waktu</span>
+                    <strong id="countdown" class="text-sm sm:text-lg font-black tabular-nums text-blue-800">--:--</strong>
+                </div>
+
+                <!-- Mobile Daftar Soal Button -->
                 <button type="button" 
                         @click="navOpen = true"
-                        class="inline-flex items-center justify-center rounded-xl bg-blue-50 p-2.5 text-blue-700 hover:bg-blue-100 lg:hidden">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition lg:hidden"
+                        title="Buka Navigasi Soal">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"/>
+                    </svg>
+                    <span>Soal</span>
+                    <span id="mobile-progress-badge" class="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white">0/{{ $exam->questions->count() }}</span>
                 </button>
-
-                <div class="min-w-0 flex-1 lg:flex-none">
-                    <p class="truncate text-[10px] font-bold uppercase tracking-wide text-blue-600 sm:text-xs">
-                        {{ $exam->mataPelajaran?->nama }}
-                    </p>
-                    <h1 class="truncate text-base font-black text-slate-900 sm:text-lg">
-                        {{ $exam->nama }}
-                    </h1>
-                </div>
-
-                <div class="shrink-0 flex items-center gap-3">
-                    <!-- Save Status Indicator -->
-                    <div id="save-status" class="hidden items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold sm:flex">
-                        <span id="save-status-text">--</span>
-                        <span id="save-status-icon" class="h-4 w-4"></span>
-                    </div>
-                    <!-- Timer -->
-                    <div class="rounded-xl bg-blue-50 px-3 py-1.5 text-center sm:px-4 sm:py-2">
-                        <span class="block text-[9px] font-bold uppercase tracking-wider text-blue-600 sm:text-[10px]">Sisa waktu</span>
-                        <strong id="countdown" class="text-lg font-black tabular-nums text-blue-800 sm:text-xl">--:--</strong>
-                    </div>
-                </div>
             </div>
-        </header>
+        </div>
 
-        <main class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:flex lg:gap-6">
-            <div class="min-w-0 flex-1">
-                @if ($exam->deskripsi)
-                    <div class="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5 shadow-sm">
-                        <div class="flex gap-3">
-                            <svg class="h-6 w-6 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <div>
-                                <h4 class="text-sm font-bold text-amber-900">Petunjuk Ujian</h4>
-                                <div class="mt-1 text-sm text-amber-800 leading-relaxed whitespace-pre-wrap">{{ $exam->deskripsi }}</div>
-                            </div>
+        <!-- Mobile Sub-Header Status Bar -->
+        <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/90 px-3 py-1 text-[11px] sm:hidden">
+            <div class="flex items-center gap-1.5">
+                <span id="mobile-connection-dot" class="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="mobile-connection-status" class="font-medium text-slate-600">Online</span>
+            </div>
+            <div class="flex items-center gap-1 font-semibold text-slate-600">
+                <span id="mobile-save-status-text">--</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6 lg:grid lg:grid-cols-[1fr_270px] lg:gap-6">
+        <div class="min-w-0 flex-1">
+            @if ($exam->deskripsi)
+                <details class="group mb-5 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 shadow-sm" open>
+                    <summary class="flex cursor-pointer items-center justify-between font-bold text-xs sm:text-sm text-amber-900 list-none select-none">
+                        <div class="flex items-center gap-2">
+                            <svg class="h-5 w-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Petunjuk Ujian</span>
+                        </div>
+                        <span class="text-xs text-amber-700 transition duration-200 group-open:rotate-180">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </span>
+                    </summary>
+                    <div class="mt-2 text-xs sm:text-sm text-amber-800 leading-relaxed whitespace-pre-wrap pl-7 border-t border-amber-200/60 pt-2">
+                        {{ $exam->deskripsi }}
+                    </div>
+                </details>
+            @endif
+
+            <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam, false) }}" class="space-y-5">
+            @csrf
+            
+            <!-- Hidden input to track pending state -->
+            <input type="hidden" id="pending-indicator" value="0">
+            
+            @foreach ($exam->questions as $question)
+                <section id="question-{{ $loop->iteration }}" 
+                         class="question-panel rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-7 overflow-hidden" 
+                         data-question="{{ $loop->iteration }}" 
+                         data-question-id="{{ $question->id }}"
+                         style="display: {{ $loop->first ? 'block' : 'none' }}">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm sm:text-base font-extrabold text-slate-800">
+                                Soal {{ $loop->iteration }}
+                            </span>
+                            <span class="text-xs font-semibold text-slate-400">
+                                / {{ $exam->questions->count() }}
+                            </span>
+                        </div>
+                        <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700 uppercase tracking-wide">
+                            {{ $question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay' }}
+                        </span>
+                    </div>
+
+                    @if($question->image)
+                        <div class="my-4">
+                            <img src="{{ Storage::url($question->image) }}" 
+                                 class="max-h-80 w-auto max-w-full rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition object-contain" 
+                                 alt="Gambar Soal" 
+                                 @click="zoomImage = '{{ Storage::url($question->image) }}'">
+                        </div>
+                    @endif
+
+                    <div class="mt-4 text-slate-800">
+                        <div class="rich-text-content question-content break-words text-[15px] sm:text-base leading-relaxed text-slate-800">
+                            {!! $question->pertanyaan !!}
                         </div>
                     </div>
-                @endif
-                <form id="exam-form" method="POST" action="{{ route('siswa.ujian.submit', $exam, false) }}" class="space-y-5">
-                    @csrf
-                    
-                    <!-- Hidden input to track pending state -->
-                    <input type="hidden" id="pending-indicator" value="0">
-                    
-                    @foreach ($exam->questions as $question)
-                        <section id="question-{{ $loop->iteration }}" 
-                                 class="question-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" 
-                                 data-question="{{ $loop->iteration }}" 
-                                 data-question-id="{{ $question->id }}"
-                                 style="display: {{ $loop->first ? 'block' : 'none' }}">
-                            
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                                <span class="text-sm font-bold text-slate-500">
-                                    Soal {{ $loop->iteration }} <span class="hidden sm:inline">dari {{ $exam->questions->count() }}</span>
-                                </span>
-                                <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                                    {{ strtoupper($question->tipe) }}
-                                </span>
-                            </div>
 
-                            @if($question->image)
-                            <div class="mt-5 mb-4">
-                                <img src="{{ Storage::url($question->image) }}" class="max-h-80 w-auto rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:opacity-90 transition" alt="Gambar Soal" @click="zoomImage = '{{ Storage::url($question->image) }}'">
-                            </div>
-                            @endif
-                            <div class="prose prose-slate mt-2 max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-xl prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-td:border prose-td:border-slate-200 prose-td:p-2">
-                                <div class="whitespace-pre-line text-[15px] font-semibold leading-relaxed text-slate-900 sm:text-lg">
-                                    {!! $question->pertanyaan !!}
-                                </div>
-                            </div>
+                    @if ($question->tipe === 'pg')
+                        <div class="mt-6 space-y-3">
+                            @foreach (['a','b','c','d','e'] as $option)
+                                @if ($question->{'opsi_'.$option})
+                                    <label class="option-label group relative flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-4 transition-all hover:border-blue-400 hover:bg-blue-50/40 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 has-[:checked]:ring-1 has-[:checked]:ring-blue-600/30">
+                                        <input type="radio" 
+                                               name="answers[{{ $question->id }}]" 
+                                               value="{{ strtoupper($option) }}" 
+                                               class="mt-1 h-4 w-4 shrink-0 text-blue-600 border-slate-300 focus:ring-blue-500 answer-input"
+                                               data-question-id="{{ $question->id }}"
+                                               @checked(($answers[$question->id] ?? '') === strtoupper($option))>
+                                        
+                                        <div class="min-w-0 flex-1 flex items-start gap-2.5 sm:gap-3">
+                                            <span class="option-badge inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-700 transition group-hover:bg-blue-100 group-hover:text-blue-700 group-has-[:checked]:bg-blue-600 group-has-[:checked]:text-white select-none">
+                                                {{ strtoupper($option) }}
+                                            </span>
+                                            <div class="rich-text-content option-content min-w-0 flex-1 break-words text-sm sm:text-base leading-relaxed text-slate-800">
+                                                {!! $question->{'opsi_'.$option} !!}
+                                            </div>
+                                        </div>
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                    @else
+                        <label class="mt-6 block">
+                            <span class="mb-2 block text-xs sm:text-sm font-bold text-slate-700">Jawaban Anda</span>
+                            <textarea name="answers[{{ $question->id }}]" 
+                                      rows="5" 
+                                      class="w-full max-w-full rounded-xl border-slate-300 p-3 sm:p-4 text-sm sm:text-base focus:border-blue-500 focus:ring-blue-500 answer-input shadow-inner transition-colors"
+                                      data-question-id="{{ $question->id }}"
+                                      placeholder="Tulis jawaban Anda di sini...">{{ $answers[$question->id] ?? '' }}</textarea>
+                        </label>
+                    @endif
+                </section>
+            @endforeach
 
-                            @if ($question->tipe === 'pg')
-                                <div class="mt-7 space-y-3">
-                                    @foreach (['a','b','c','d','e'] as $option)
-                                        @if ($question->{'opsi_'.$option})
-                                            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3.5 transition-colors hover:border-blue-400 hover:bg-blue-50/40 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 sm:p-4">
-                                                <input type="radio" 
-                                                       name="answers[{{ $question->id }}]" 
-                                                       value="{{ strtoupper($option) }}" 
-                                                       class="mt-0.5 h-5 w-5 border-slate-300 text-blue-600 answer-input focus:ring-blue-500"
-                                                       data-question-id="{{ $question->id }}"
-                                                       @checked(($answers[$question->id] ?? '') === strtoupper($option))>
-                                                <span class="text-[15px] sm:text-base">
-                                                    <strong class="mr-2 text-blue-700">{{ strtoupper($option) }}.</strong>
-                                                    {!! $question->{'opsi_'.$option} !!}
-                                                </span>
-                                            </label>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @else
-                                <label class="mt-6 block">
-                                    <span class="mb-2 block text-sm font-semibold text-slate-700">Jawaban Anda</span>
-                                    <textarea name="answers[{{ $question->id }}]" 
-                                              rows="5" 
-                                              class="w-full rounded-xl border-slate-300 answer-input text-[15px] focus:border-blue-500 focus:ring-blue-500 sm:text-base"
-                                              data-question-id="{{ $question->id }}"
-                                              placeholder="Tulis jawaban Anda..."></textarea>
-                                </label>
-                            @endif
-                        </section>
-                    @endforeach
-
-                    <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
-                        <button type="button" id="previous" 
-                                class="flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
-                            Sebelumnya
-                        </button>
-                        <button type="button" id="next" 
-                                class="flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
-                            Berikutnya
-                        </button>
-                        <button type="button" id="finish" 
-                                class="hidden w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
-                            Kumpulkan Ujian
-                        </button>
-                    </div>
-                </form>
+            <div class="flex items-center justify-between gap-3 pt-2">
+                <button type="button" id="previous" 
+                        class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-3 text-xs sm:text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 min-h-[44px]">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Sebelumnya</span>
+                </button>
+                <button type="button" id="next" 
+                        class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 min-h-[44px]">
+                    <span>Berikutnya</span>
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <button type="button" id="finish" 
+                        class="hidden flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 min-h-[44px]">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Kumpulkan Ujian</span>
+                </button>
             </div>
+            </form>
+        </div>
 
-            <!-- Mobile Overlay -->
-            <div x-show="navOpen" 
-                 x-transition.opacity 
-                 class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
-                 @click="navOpen = false"
-                 style="display: none;"></div>
-
-            <!-- Navigation Sidebar / Drawer -->
-            <aside class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 lg:static lg:w-72 lg:translate-x-0 lg:shrink-0 lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:shadow-sm"
-                   :class="{ 'translate-x-0': navOpen }">
-                
-                <div class="flex items-center justify-between border-b border-slate-100 p-5 lg:hidden">
-                    <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
-                    <button type="button" @click="navOpen = false" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <!-- Desktop Sidebar Navigation -->
+        <aside class="hidden lg:block h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sticky top-24">
+            <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
+            <div class="mt-4">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+                    <span>Progress jawaban</span>
+                    <span id="answer-progress-text">0/{{ $exam->questions->count() }}</span>
+                </div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div id="answer-progress-bar" class="h-full w-0 rounded-full bg-blue-600 transition-all"></div>
+                </div>
+            </div>
+            <div class="mt-4 grid grid-cols-5 gap-2 max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
+                @foreach ($exam->questions as $question)
+                    <button type="button" 
+                            class="question-number h-9 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:border-blue-400 transition focus:outline-none" 
+                            data-target="{{ $loop->iteration }}"
+                            data-question-id="{{ $question->id }}">
+                        {{ $loop->iteration }}
                     </button>
-                </div>
+                @endforeach
+            </div>
+            <p class="mt-5 text-xs leading-relaxed text-slate-500">
+                Jawaban akan tersimpan otomatis setiap 5 soal yang berubah. 
+                <span id="pending-count" class="hidden font-semibold text-amber-600">
+                    Ada <span id="pending-count-num">0</span> jawaban yang belum tersimpan.
+                </span>
+            </p>
+        </aside>
+    </main>
 
-                <div class="hidden border-b border-slate-100 p-5 lg:block">
-                    <h2 class="font-bold text-slate-900">Navigasi Soal</h2>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto p-5">
-                    <div class="grid grid-cols-5 gap-2 sm:grid-cols-5">
-                        @foreach ($exam->questions as $question)
-                            <button type="button" 
-                                    class="question-number h-10 w-full rounded-lg border border-slate-200 text-sm font-bold text-slate-600 transition-colors hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1" 
-                                    data-target="{{ $loop->iteration }}"
-                                    data-question-id="{{ $question->id }}">
-                                {{ $loop->iteration }}
-                            </button>
-                        @endforeach
-                    </div>
-                    
-                    <p class="mt-6 rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
-                        Jawaban tersimpan otomatis. 
-                        <span id="pending-count" class="hidden mt-1 block font-semibold text-amber-600">
-                            Ada <span id="pending-count-num">0</span> jawaban belum tersimpan.
-                        </span>
-                    </p>
-                </div>
-            </aside>
-        </main>
-    </div>
+    <!-- Mobile Drawer Backdrop -->
+    <div x-show="navOpen" 
+         x-transition:enter="transition-opacity ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+         @click="navOpen = false"
+         style="display: none;"></div>
+
+    <!-- Mobile Drawer Content -->
+    <aside x-show="navOpen"
+           x-transition:enter="transition ease-out duration-300 transform"
+           x-transition:enter-start="translate-x-full"
+           x-transition:enter-end="translate-x-0"
+           x-transition:leave="transition ease-in duration-200 transform"
+           x-transition:leave-start="translate-x-0"
+           x-transition:leave-end="translate-x-full"
+           class="fixed inset-y-0 right-0 z-50 flex w-80 max-w-[85vw] flex-col bg-white shadow-2xl lg:hidden"
+           style="display: none;">
+        <div class="flex items-center justify-between border-b border-slate-100 p-4">
+            <div>
+                <h2 class="font-bold text-slate-900 text-base">Navigasi Soal</h2>
+                <p class="text-xs text-slate-500">Pilih nomor untuk membuka soal</p>
+            </div>
+            <button type="button" @click="navOpen = false" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="border-b border-slate-100 p-4 bg-slate-50/60">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+                <span>Progress Jawaban</span>
+                <span id="mobile-drawer-progress-text">0/{{ $exam->questions->count() }}</span>
+            </div>
+            <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+                <div id="mobile-drawer-progress-bar" class="h-full w-0 rounded-full bg-blue-600 transition-all"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[11px] text-slate-500">
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Terjawab</span>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-200"></span> Belum</span>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-blue-600"></span> Aktif</span>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            <div class="grid grid-cols-5 gap-2">
+                @foreach ($exam->questions as $question)
+                    <button type="button" 
+                            @click="navOpen = false"
+                            class="question-number h-10 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:border-blue-400 active:scale-95 transition" 
+                            data-target="{{ $loop->iteration }}"
+                            data-question-id="{{ $question->id }}">
+                        {{ $loop->iteration }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+    </aside>
 
     <script>
         /**
          * ============================================================================
-         * BATCH ANSWER SAVING SYSTEM
+         * BATCH ANSWER SAVING SYSTEM WITH LOCALSTORAGE PERSISTENCE
          * ============================================================================
          * 
          * FITUR:
+         * - Simpan pending answers ke localStorage sebagai persistent queue
          * - Batch save setiap 5 jawaban yang berubah
-         * - Pending queue di browser
          * - Retry mechanism untuk failed requests
+         * - Hapus hanya batch sukses dari localStorage
          * - Visual indicator status
          * - Prevent submit sebelum pending selesai
          * - Handle page leave & time up dengan pending answers
          * - Prevent duplikasi dengan update-or-create backend
+         * - Resume ujian dengan merge localStorage + database
          */
 
         // ============================================================================
@@ -219,16 +429,24 @@
             RETRY_DELAY: 1000,                // Delay 1 detik sebelum retry
         };
 
+        // Get unique storage key untuk exam attempt
+        const ATTEMPT_ID = '{{ $attempt->id }}';
+        const STORAGE_KEY = `cbt_pending_answers_${ATTEMPT_ID}`;
+
         // State tracking
         const state = {
-            pendingAnswers: new Map(),        // Map<questionId, jawaban> - jawaban yang belum tersimpan
-            changedQuestions: new Set(),      // Set<questionId> - soal yang berubah
-            savedAnswers: new Map(),          // Map<questionId, jawaban> - jawaban yang sudah tersimpan
+            // Pending answers di memory (sync dengan localStorage)
+            // Structure: { questionId: answer, ... }
+            pendingAnswers: {},
+            
+            changedQuestions: new Set(),      // Set<questionId> - soal yang berubah, digunakan untuk batch logic
+            savedAnswers: new Map(),          // Map<questionId, jawaban> - jawaban yang sudah tersimpan di server
             isSaving: false,                  // Prevent concurrent saves
             savingError: null,                // Error dari save terakhir
             retryCount: 0,                    // Jumlah retry attempt
             pageUnloading: false,             // Flag untuk page unload
             isSubmitting: false,              // Flag untuk submit
+            submitStarted: false,             // Mutex global untuk submit/timer race condition
         };
 
         // DOM Elements
@@ -247,6 +465,9 @@
             pendingIndicator: document.getElementById('pending-indicator'),
             pendingCountEl: document.getElementById('pending-count'),
             pendingCountNum: document.getElementById('pending-count-num'),
+            connectionStatus: document.getElementById('connection-status'),
+            answerProgressText: document.getElementById('answer-progress-text'),
+            answerProgressBar: document.getElementById('answer-progress-bar'),
         };
 
         let current = 1;
@@ -254,6 +475,61 @@
         let periodicSaveTimer = null;
         let deadline = null;
         let countdownTimer = null;
+        let activeSavePromise = null;
+
+        // ============================================================================
+        // LOCALSTORAGE MANAGEMENT
+        // ============================================================================
+
+        /**
+         * Baca pending answers dari localStorage
+         */
+        function getPendingAnswersFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : {};
+            } catch (error) {
+                console.error('Error reading from localStorage:', error);
+                return {};
+            }
+        }
+
+        /**
+         * Simpan pending answers ke localStorage
+         */
+        function savePendingAnswersToStorage(answers) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
+            } catch (error) {
+                console.error('Error writing to localStorage:', error);
+            }
+        }
+
+        /**
+         * Hapus answers tertentu dari localStorage (setelah batch berhasil disimpan)
+         */
+        function removeAnswersFromStorage(questionIds) {
+            try {
+                const pending = getPendingAnswersFromStorage();
+                questionIds.forEach(qId => {
+                    delete pending[String(qId)];
+                });
+                savePendingAnswersToStorage(pending);
+            } catch (error) {
+                console.error('Error removing from localStorage:', error);
+            }
+        }
+
+        /**
+         * Hapus semua pending answers dari localStorage (setelah submit berhasil)
+         */
+        function clearPendingAnswersStorage() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (error) {
+                console.error('Error clearing localStorage:', error);
+            }
+        }
 
         // ============================================================================
         // UTILITY FUNCTIONS
@@ -263,36 +539,114 @@
          * Update visual indicator untuk status penyimpanan
          */
         function updateSaveStatus() {
-            const pendingCount = state.pendingAnswers.size;
+            // Hitung jumlah pending dari object
+            const pendingCount = Object.keys(state.pendingAnswers).length;
             
             if (state.isSaving) {
-                elements.saveStatus.className = 'flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold bg-amber-50 text-amber-700';
+                elements.saveStatus.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700';
                 elements.saveStatusText.textContent = 'Menyimpan...';
-                elements.saveStatusIcon.innerHTML = '<svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+                elements.saveStatusIcon.innerHTML = '<svg class="animate-spin h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
             } else if (state.savingError) {
-                elements.saveStatus.className = 'flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold bg-red-50 text-red-700';
+                elements.saveStatus.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-red-50 text-red-700';
                 elements.saveStatusText.textContent = `Gagal (${state.retryCount}/${CONFIG.MAX_RETRIES})`;
-                elements.saveStatusIcon.innerHTML = '<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
+                elements.saveStatusIcon.innerHTML = '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
             } else if (pendingCount > 0) {
-                elements.saveStatus.className = 'flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700';
-                elements.saveStatusText.textContent = `${pendingCount} jawaban pending`;
-                elements.saveStatusIcon.innerHTML = '<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+                elements.saveStatus.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700';
+                elements.saveStatusText.textContent = `${pendingCount} pending`;
+                elements.saveStatusIcon.innerHTML = '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
             } else {
-                elements.saveStatus.className = 'flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700';
+                elements.saveStatus.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700';
                 elements.saveStatusText.textContent = 'Tersimpan';
-                elements.saveStatusIcon.innerHTML = '<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+                elements.saveStatusIcon.innerHTML = '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+            }
+
+            // Sync with mobile status bar
+            const mobileSaveStatus = document.getElementById('mobile-save-status-text');
+            if (mobileSaveStatus) {
+                if (state.isSaving) {
+                    mobileSaveStatus.textContent = 'Menyimpan...';
+                } else if (state.savingError) {
+                    mobileSaveStatus.textContent = `Gagal (${state.retryCount}/${CONFIG.MAX_RETRIES})`;
+                } else if (pendingCount > 0) {
+                    mobileSaveStatus.textContent = `${pendingCount} pending`;
+                } else {
+                    mobileSaveStatus.textContent = 'Tersimpan';
+                }
             }
 
             // Update pending count di sidebar
-            if (pendingCount > 0) {
-                elements.pendingCountEl.classList.remove('hidden');
-                elements.pendingCountNum.textContent = pendingCount;
-            } else {
-                elements.pendingCountEl.classList.add('hidden');
+            if (elements.pendingCountEl && elements.pendingCountNum) {
+                if (pendingCount > 0) {
+                    elements.pendingCountEl.classList.remove('hidden');
+                    elements.pendingCountNum.textContent = pendingCount;
+                } else {
+                    elements.pendingCountEl.classList.add('hidden');
+                }
             }
 
             // Update hidden indicator
-            elements.pendingIndicator.value = pendingCount;
+            if (elements.pendingIndicator) {
+                elements.pendingIndicator.value = pendingCount;
+            }
+            updateAnswerProgress();
+        }
+
+        function updateAnswerProgress() {
+            const answers = getCurrentAnswers();
+            const answeredCount = Object.values(answers).filter(answer => String(answer).trim() !== '').length;
+            const totalQuestions = elements.panels.length;
+            const percentage = totalQuestions ? (answeredCount / totalQuestions) * 100 : 0;
+
+            if (elements.answerProgressText) {
+                elements.answerProgressText.textContent = `${answeredCount}/${totalQuestions}`;
+            }
+            if (elements.answerProgressBar) {
+                elements.answerProgressBar.style.width = `${percentage}%`;
+            }
+
+            // Update mobile header badge
+            const mobileBadge = document.getElementById('mobile-progress-badge');
+            if (mobileBadge) {
+                mobileBadge.textContent = `${answeredCount}/${totalQuestions}`;
+            }
+
+            // Update mobile drawer progress
+            const drawerProgressText = document.getElementById('mobile-drawer-progress-text');
+            if (drawerProgressText) {
+                drawerProgressText.textContent = `${answeredCount}/${totalQuestions}`;
+            }
+            const drawerProgressBar = document.getElementById('mobile-drawer-progress-bar');
+            if (drawerProgressBar) {
+                drawerProgressBar.style.width = `${percentage}%`;
+            }
+
+            elements.numbers.forEach(button => {
+                const questionId = button.dataset.questionId;
+                const isAnswered = String(answers[questionId] ?? '').trim() !== '';
+                button.classList.toggle('border-emerald-500', isAnswered);
+                button.classList.toggle('bg-emerald-50', isAnswered);
+                button.classList.toggle('text-emerald-700', isAnswered);
+            });
+        }
+
+        function updateConnectionStatus() {
+            const isOnline = navigator.onLine;
+            if (elements.connectionStatus) {
+                elements.connectionStatus.textContent = isOnline ? 'Online' : 'Offline - tersimpan di HP';
+                elements.connectionStatus.className = isOnline
+                    ? 'text-right text-[10px] font-semibold text-emerald-600'
+                    : 'text-right text-[10px] font-semibold text-amber-600';
+            }
+            const mobileConn = document.getElementById('mobile-connection-status');
+            if (mobileConn) {
+                mobileConn.textContent = isOnline ? 'Online' : 'Offline';
+            }
+            const mobileDot = document.getElementById('mobile-connection-dot');
+            if (mobileDot) {
+                mobileDot.className = isOnline 
+                    ? 'inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse' 
+                    : 'inline-block h-2 w-2 rounded-full bg-amber-500';
+            }
         }
 
         /**
@@ -313,21 +667,24 @@
         }
 
         /**
-         * Track perubahan jawaban dan update pending queue
+         * Track perubahan jawaban dan update pending queue + localStorage
          */
         function trackAnswerChange(questionId, newAnswer) {
             const questionIdStr = String(questionId);
             const savedAnswer = state.savedAnswers.get(questionIdStr);
             
-            // Jika jawaban sama dengan yang sudah tersimpan, hapus dari pending
+            // Jika jawaban sama dengan yang sudah tersimpan di server, hapus dari pending
             if (savedAnswer === newAnswer) {
-                state.pendingAnswers.delete(questionIdStr);
+                delete state.pendingAnswers[questionIdStr];
                 state.changedQuestions.delete(questionIdStr);
             } else {
                 // Jika berbeda, masukkan ke pending
-                state.pendingAnswers.set(questionIdStr, newAnswer);
+                state.pendingAnswers[questionIdStr] = newAnswer;
                 state.changedQuestions.add(questionIdStr);
             }
+            
+            // Sync dengan localStorage
+            savePendingAnswersToStorage(state.pendingAnswers);
             
             updateSaveStatus();
         }
@@ -339,70 +696,98 @@
         /**
          * Save batch answers ke backend
          * Retry otomatis jika gagal
+         * Hapus dari localStorage HANYA jika berhasil
          */
         async function saveBatchAnswers(answers, attempt = 0) {
-            if (state.isSaving) {
-                return Promise.resolve(); // Prevent concurrent saves
-            }
-
             if (Object.keys(answers).length === 0) {
                 return Promise.resolve(); // No answers to save
+            }
+
+            if (activeSavePromise) {
+                return activeSavePromise.then(() => saveBatchAnswers(answers, attempt));
             }
 
             state.isSaving = true;
             updateSaveStatus();
 
-            try {
-                const response = await fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
-                    method: 'POST',
-                            credentials: 'same-origin',
-                    
-                    timeout: CONFIG.SAVE_TIMEOUT,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ answers }),
-                });
+            const sentAnswers = { ...answers };
+            const savePromise = (async () => {
+                let retryAttempt = attempt;
 
-                if (!response.ok) {
+                while (true) {
+                    try {
+                        const response = await fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            
+                            timeout: CONFIG.SAVE_TIMEOUT,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ answers: sentAnswers }),
+                        });
+
+                        if (!response.ok) {
                     if (response.status === 419 || response.status === 401 || response.status === 403) {
-                        alert("Sesi Anda telah kadaluarsa atau login di perangkat lain terdeteksi. Jawaban terakhir Anda sudah aman di memori browser.\n\nSilakan REFRESH / MUAT ULANG halaman ini sekarang.");
+                        alert("Sesi Anda telah kadaluarsa atau Anda login di perangkat lain. Jawaban terakhir Anda sudah diamankan di browser.\n\nSilakan REFRESH / MUAT ULANG halaman ini sekarang.");
                         throw new Error("Session Expired");
                     }
                     throw new Error(`Server error: ${response.status}`);
                 }
 
-                const data = await response.json();
-                
-                if (data.saved) {
-                    // Mark answers sebagai tersimpan
-                    Object.entries(answers).forEach(([qId, answer]) => {
-                        state.savedAnswers.set(String(qId), answer);
-                        state.pendingAnswers.delete(String(qId));
-                        state.changedQuestions.delete(String(qId));
-                    });
+                        const data = await response.json();
+                        
+                        if (!data.saved) {
+                            throw new Error('Save response invalid');
+                        }
 
-                    state.savingError = null;
-                    state.retryCount = 0;
-                } else {
-                    throw new Error('Save response invalid');
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                state.savingError = error.message;
+                        // Backend berhasil - mark answers sebagai tersimpan
+                        Object.entries(sentAnswers).forEach(([qId, answer]) => {
+                            state.savedAnswers.set(String(qId), answer);
+                            const questionId = String(qId);
+                            const hasPendingAnswer = Object.prototype.hasOwnProperty.call(state.pendingAnswers, questionId);
 
-                // Retry dengan exponential backoff
-                if (error.message !== "Session Expired" && attempt < CONFIG.MAX_RETRIES) {
-                    state.retryCount = attempt + 1;
-                    await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * (attempt + 1)));
-                    return saveBatchAnswers(answers, attempt + 1);
-                } else {
-                    // Max retries reached, keep answers in pending untuk manual retry
-                    console.error('Max retries reached, answers kept in pending');
+                            if (!hasPendingAnswer || state.pendingAnswers[questionId] === answer) {
+                                delete state.pendingAnswers[questionId];
+                                state.changedQuestions.delete(questionId);
+                            }
+                        });
+
+                        // HAPUS hanya pending yang nilainya masih sama dengan request sukses
+                        savePendingAnswersToStorage(state.pendingAnswers);
+
+                        state.savingError = null;
+                        state.retryCount = 0;
+                        return true;
+                    } catch (error) {
+                        console.error('Save error:', error);
+                        state.savingError = error.message;
+
+                        if (retryAttempt < CONFIG.MAX_RETRIES) {
+                            retryAttempt += 1;
+                            state.retryCount = retryAttempt;
+                            await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY * retryAttempt));
+                            continue;
+                        }
+
+                        // Setelah retry maksimum: pending wajib tetap ada.
+                        // Jangan menghapus localStorage dan jangan menyembunyikan error.
+                        console.error('Max retries reached, answers kept in pending');
+                        throw error;
+                    }
                 }
+            })();
+
+            activeSavePromise = savePromise;
+
+            try {
+                return await savePromise;
             } finally {
+                if (activeSavePromise === savePromise) {
+                    activeSavePromise = null;
+                }
                 state.isSaving = false;
                 updateSaveStatus();
             }
@@ -418,7 +803,8 @@
                 const batchAnswers = {};
                 
                 itemsToSave.forEach(qId => {
-                    batchAnswers[qId] = state.pendingAnswers.get(qId);
+                    // Get dari state.pendingAnswers object
+                    batchAnswers[qId] = state.pendingAnswers[String(qId)];
                 });
 
                 await saveBatchAnswers(batchAnswers);
@@ -429,15 +815,12 @@
          * Save semua pending answers (digunakan saat submit & time up)
          */
         async function saveAllPendingAnswers() {
-            if (state.pendingAnswers.size === 0) {
+            if (Object.keys(state.pendingAnswers).length === 0) {
                 return Promise.resolve();
             }
 
-            const allAnswers = {};
-            state.pendingAnswers.forEach((answer, qId) => {
-                allAnswers[qId] = answer;
-            });
-
+            // Copy semua pending answers
+            const allAnswers = { ...state.pendingAnswers };
             return saveBatchAnswers(allAnswers);
         }
 
@@ -454,17 +837,33 @@
         // ============================================================================
 
         function showQuestion(number) {
-            current = number;
+            current = Math.max(1, Math.min(number, elements.panels.length));
             elements.panels.forEach((panel, index) => {
                 panel.style.display = index + 1 === current ? 'block' : 'none';
             });
-            elements.numbers.forEach((button, index) => {
-                button.classList.toggle('border-blue-600', index + 1 === current);
+            elements.numbers.forEach((button) => {
+                const isCurrent = Number(button.dataset.target) === current;
+                button.classList.toggle('border-blue-600', isCurrent);
+                button.classList.toggle('ring-2', isCurrent);
+                button.classList.toggle('ring-blue-500', isCurrent);
+                button.classList.toggle('ring-offset-1', isCurrent);
             });
             
             elements.previous.disabled = current === 1;
             elements.next.classList.toggle('hidden', current === elements.panels.length);
             elements.finish.classList.toggle('hidden', current !== elements.panels.length);
+
+            // Auto-scroll smooth to question top
+            const activePanel = document.getElementById(`question-${current}`);
+            if (activePanel) {
+                const rect = activePanel.getBoundingClientRect();
+                if (rect.top < 0 || rect.top > 160) {
+                    window.scrollTo({
+                        top: activePanel.offsetTop - 75,
+                        behavior: 'smooth'
+                    });
+                }
+            }
         }
 
         // ============================================================================
@@ -528,13 +927,12 @@
             }
 
             try {
-                // Save semua pending answers dulu
                 await saveAllPendingAnswers();
 
-                // Wait a bit untuk memastikan state update
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Hanya clear localStorage setelah server mengkonfirmasi save sukses.
+                clearPendingAnswersStorage();
 
-                // Submit form
+                // Submit form hanya setelah semua pending berhasil disimpan.
                 elements.form.submit();
             } catch (error) {
                 console.error('Submit error:', error);
@@ -567,7 +965,7 @@
             
             // Show full screen overlay
             const overlay = document.createElement('div');
-            overlay.innerHTML = '<div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.9);color:white;flex-direction:column;gap:1rem;"><svg class="h-16 w-16 text-rose-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><h2 class="text-2xl font-bold text-center">Waktu Ujian Telah Habis!</h2><p class="text-slate-300 text-center">Sistem sedang menyimpan jawaban Anda otomatis...</p></div>';
+            overlay.innerHTML = '<div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.9);color:white;flex-direction:column;gap:1rem;"><svg class="h-16 w-16 text-rose-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><h2 class="text-2xl font-bold text-center">Waktu Ujian Telah Habis!</h2><p class="text-slate-300 text-center">Sistem sedang mengumpulkan jawaban Anda...</p></div>';
             document.body.appendChild(overlay.firstChild);
 
             // Disable tombol navigasi (overlay sudah memblokir klik user, jangan disable answerInputs agar data tetap terkirim via form submit)
@@ -591,9 +989,7 @@
 
             try {
                 await saveAllPendingAnswers();
-                if (typeof clearPendingAnswersStorage === 'function') {
-                    clearPendingAnswersStorage();
-                }
+                clearPendingAnswersStorage();
                 await new Promise(resolve => setTimeout(resolve, 1000));
             } catch (error) {
                 console.error('Error saving pending on time up:', error);
@@ -610,24 +1006,17 @@
          * Jika ada pending answers saat page unload, coba save
          */
         window.addEventListener('pagehide', async () => {
-            if (state.isSubmitting || state.pageUnloading) {
+            if (state.submitStarted || state.isSubmitting || state.pageUnloading) {
                 return; // Sudah dalam proses submit
             }
 
-            if (state.pendingAnswers.size > 0) {
+            const pendingCount = Object.keys(state.pendingAnswers).length;
+            if (pendingCount > 0) {
                 state.pageUnloading = true;
                 
-                // Use sendBeacon untuk reliability pada page unload
-                const answers = {};
-                state.pendingAnswers.forEach((answer, qId) => {
-                    answers[qId] = answer;
-                });
+                // Use fetch dengan keepalive untuk reliability pada page unload
+                const answers = { ...state.pendingAnswers };
 
-                const formData = new FormData();
-                formData.append('answers', JSON.stringify(answers));
-                formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-
-                // Try fetch dengan keepalive (lebih reliable dari sendBeacon)
                 fetch('{{ route('siswa.ujian.answers', $exam, false) }}', {
                     method: 'POST',
                             credentials: 'same-origin',
@@ -653,10 +1042,11 @@
         });
 
         /**
-         * Prevent unload dialog jika ada pending (optional)
+         * Prevent unload dialog jika ada pending
          */
         window.addEventListener('beforeunload', (e) => {
-            if (state.pendingAnswers.size > 0 && !state.isSubmitting && !state.pageUnloading) {
+            const pendingCount = Object.keys(state.pendingAnswers).length;
+            if (pendingCount > 0 && !state.submitStarted && !state.isSubmitting && !state.pageUnloading) {
                 e.preventDefault();
                 e.returnValue = 'Ada jawaban yang belum tersimpan. Apakah Anda yakin ingin meninggalkan halaman?';
             }
@@ -666,12 +1056,49 @@
         // INITIALIZE
         // ============================================================================
 
+        /**
+         * Initialize dengan load dari localStorage dan database
+         */
         function initialize() {
-            // Load initial answers sebagai "saved"
-            const initialAnswers = getCurrentAnswers();
-            Object.entries(initialAnswers).forEach(([qId, answer]) => {
-                state.savedAnswers.set(String(qId), answer);
+            // Load jawaban dari database yang sudah tersimpan
+            const dbAnswers = getCurrentAnswers();
+            Object.entries(dbAnswers).forEach(([qId, answer]) => {
+                if (answer) {  // Hanya jika ada jawaban
+                    state.savedAnswers.set(String(qId), answer);
+                }
             });
+
+            // Load pending answers dari localStorage (jawaban yang belum berhasil disimpan)
+            const storedPending = getPendingAnswersFromStorage();
+            state.pendingAnswers = { ...storedPending };
+
+            // Reconstruct changedQuestions dari pending answers
+            Object.keys(storedPending).forEach(qId => {
+                state.changedQuestions.add(qId);
+            });
+
+            console.log('Initialized state:');
+            console.log('- Saved answers from DB:', state.savedAnswers.size);
+            console.log('- Pending answers from localStorage:', Object.keys(state.pendingAnswers).length);
+            console.log('- Changed questions:', state.changedQuestions.size);
+
+            // Restore UI from localStorage pending answers
+            if (Object.keys(state.pendingAnswers).length > 0) {
+                Object.entries(state.pendingAnswers).forEach(([qId, val]) => {
+                    const inputs = elements.form.querySelectorAll(`[name="answers[${qId}]"]`);
+                    inputs.forEach(input => {
+                        if (input.type === 'radio') {
+                            if (input.value === val) {
+                                input.checked = true;
+                            }
+                        } else {
+                            input.value = val;
+                        }
+                    });
+                });
+                // Update nav button colors based on restored answers
+                updateAnswerProgress();
+            }
 
             // Set deadline
             const deadlineStr = '{{ $attempt->started_at->copy()->addMinutes($exam->durasi_menit)->min($exam->tanggal_selesai ?? $attempt->started_at->copy()->addMinutes($exam->durasi_menit))->toIso8601String() }}';
@@ -701,6 +1128,7 @@
                     }
                     
                     trackAnswerChange(questionId, currentValue);
+                    updateAnswerProgress();
                     queueSave();
                 });
 
@@ -716,12 +1144,21 @@
                     }
                     
                     trackAnswerChange(questionId, currentValue);
+                    updateAnswerProgress();
                     queueSave();
                 });
             });
 
-            // Periodic fallback save (untuk case radio button yang tidak trigger input)
-            periodicSaveTimer = setInterval(checkAndSaveBatch, CONFIG.PERIODIC_INTERVAL);
+            // Periodic fallback save: simpan otomatis ke server jika ada pending answers (meskipun belum genap 5)
+            periodicSaveTimer = setInterval(() => {
+                const pendingCount = Object.keys(state.pendingAnswers).length;
+                if (pendingCount > 0 && !state.isSaving && !state.isSubmitting) {
+                    saveAllPendingAnswers().catch(err => console.warn('Periodic save warning:', err));
+                }
+            }, CONFIG.PERIODIC_INTERVAL);
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            updateConnectionStatus();
 
             // Countdown timer
             countdownTimer = setInterval(() => {
@@ -749,23 +1186,23 @@
     <template x-if="showConfirmModal">
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm"
              x-transition.opacity>
-            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+            <div class="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar" @click.stop>
                 <div class="flex items-center gap-3">
-                    <div class="rounded-full bg-amber-100 p-2.5 text-amber-600">
+                    <div class="rounded-full bg-amber-100 p-2.5 text-amber-600 shrink-0">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Kumpulkan Ujian?</h3>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Kumpulkan Ujian?</h3>
                         <p class="text-xs text-slate-500">Konfirmasi penyelesaian ujian</p>
                     </div>
                 </div>
 
-                <div class="mt-4 space-y-3 text-sm text-slate-600">
+                <div class="mt-4 space-y-3 text-xs sm:text-sm text-slate-600">
                     <template x-if="unansweredCount > 0">
-                        <div class="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-rose-800">
-                            <div class="flex items-center gap-2 font-bold text-sm">
+                        <div class="rounded-xl border border-rose-200 bg-rose-50 p-3 sm:p-3.5 text-rose-800">
+                            <div class="flex items-center gap-2 font-bold text-xs sm:text-sm">
                                 <svg class="h-4 w-4 shrink-0 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                 </svg>
@@ -778,8 +1215,8 @@
                     </template>
 
                     <template x-if="unansweredCount === 0">
-                        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800">
-                            <div class="flex items-center gap-2 font-bold text-sm">
+                        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 sm:p-3.5 text-emerald-800">
+                            <div class="flex items-center gap-2 font-bold text-xs sm:text-sm">
                                 <svg class="h-4 w-4 shrink-0 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
@@ -796,15 +1233,15 @@
                     </p>
                 </div>
 
-                <div class="mt-6 flex items-center justify-end gap-3">
+                <div class="mt-6 flex items-center justify-end gap-2.5 sm:gap-3">
                     <button type="button" 
-                            class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+                            class="flex-1 sm:flex-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 active:scale-95 transition"
                             @click="showConfirmModal = false">
                         Periksa Lagi
                     </button>
                     <button type="button" 
-                            id="btn-confirm-submit-new"
-                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition"
+                            id="btn-confirm-submit"
+                            class="flex-1 sm:flex-none rounded-xl bg-emerald-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition"
                             onclick="executeFinalSubmit()">
                         Ya, Kumpulkan
                     </button>
@@ -817,26 +1254,26 @@
     <template x-if="submitErrorMessage">
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm"
              x-transition.opacity>
-            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+            <div class="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar" @click.stop>
                 <div class="flex items-center gap-3 text-rose-600">
-                    <div class="rounded-full bg-rose-100 p-2.5">
+                    <div class="rounded-full bg-rose-100 p-2.5 shrink-0">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Gagal Mengumpulkan</h3>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Gagal Mengumpulkan</h3>
                         <p class="text-xs text-slate-500">Terjadi kendala saat menyimpan jawaban</p>
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <p class="text-sm leading-relaxed text-slate-600" x-text="submitErrorMessage"></p>
+                    <p class="text-xs sm:text-sm leading-relaxed text-slate-600" x-text="submitErrorMessage"></p>
                 </div>
 
                 <div class="mt-6 flex justify-end">
                     <button type="button" 
-                            class="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-900 active:scale-95 transition"
+                            class="rounded-xl bg-slate-800 px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-slate-900 active:scale-95 transition"
                             @click="submitErrorMessage = null">
                         Tutup
                     </button>
@@ -847,9 +1284,9 @@
 
     <!-- Image Zoom Modal -->
     <template x-if="zoomImage">
-        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 p-4 backdrop-blur-sm transition-all" @click="zoomImage = null" x-transition.opacity>
-            <div class="relative max-h-full max-w-full">
-                <button class="absolute -top-12 right-0 rounded-full bg-white/20 p-2 text-white hover:bg-white/40" @click="zoomImage = null">
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 p-3 sm:p-4 backdrop-blur-sm transition-all" @click="zoomImage = null" x-transition.opacity>
+            <div class="relative max-h-full max-w-full flex flex-col items-center">
+                <button class="mb-2 self-end rounded-full bg-white/20 p-2 text-white hover:bg-white/40 active:scale-95" @click="zoomImage = null">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -860,8 +1297,6 @@
     </template>
 </body>
 </html>
-
-
 
 
 
