@@ -252,7 +252,11 @@
                     @if ($question->tipe === 'pg')
                         <div class="mt-6 space-y-3">
                             @foreach (['a','b','c','d','e'] as $option)
-                                @if ($question->{'opsi_'.$option})
+                                @php
+                                    $hasText = !empty($question->{'opsi_'.$option});
+                                    $hasImg = !empty($question->{'opsi_'.$option.'_image'});
+                                @endphp
+                                @if ($hasText || $hasImg)
                                     <label class="option-label group relative flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-4 transition-all hover:border-blue-400 hover:bg-blue-50/40 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 has-[:checked]:ring-1 has-[:checked]:ring-blue-600/30">
                                         <input type="radio" 
                                                name="answers[{{ $question->id }}]" 
@@ -266,7 +270,17 @@
                                                 {{ strtoupper($option) }}
                                             </span>
                                             <div class="rich-text-content option-content min-w-0 flex-1 break-words text-sm sm:text-base leading-relaxed text-slate-800">
-                                                {!! $question->{'opsi_'.$option} !!}
+                                                @if ($hasImg)
+                                                    <div class="mb-2">
+                                                        <img src="{{ Storage::url($question->{'opsi_'.$option.'_image'}) }}" 
+                                                             class="max-h-60 w-auto rounded-lg border border-slate-200 object-contain bg-white cursor-pointer hover:opacity-90 transition shadow-xs" 
+                                                             alt="Gambar Opsi {{ strtoupper($option) }}"
+                                                             @click.stop="zoomImage = '{{ Storage::url($question->{'opsi_'.$option.'_image'}) }}'">
+                                                    </div>
+                                                @endif
+                                                @if ($hasText)
+                                                    {!! $question->{'opsi_'.$option} !!}
+                                                @endif
                                             </div>
                                         </div>
                                     </label>

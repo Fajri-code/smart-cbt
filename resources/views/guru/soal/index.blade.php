@@ -611,7 +611,7 @@
 
                                 @foreach (['a', 'b', 'c', 'd', 'e'] as $option)
 
-                                    @if ($question->{'opsi_'.$option})
+                                    @if ($question->{'opsi_'.$option} || $question->{'opsi_'.$option.'_image'})
 
                                         @php
                                             $isKey = strtoupper($question->kunci) === strtoupper($option);
@@ -637,7 +637,15 @@
                                             {{-- ISI OPSI --}}
                                             <div class="rich-text-content min-w-0 flex-1 break-words">
 
-                                                {!! $question->{'opsi_'.$option} !!}
+                                                @if ($question->{'opsi_'.$option.'_image'})
+                                                    <div class="mb-2">
+                                                        <img src="{{ Storage::url($question->{'opsi_'.$option.'_image'}) }}" class="max-h-32 rounded-lg border border-slate-200 bg-white object-contain shadow-xs" alt="Gambar Opsi {{ strtoupper($option) }}">
+                                                    </div>
+                                                @endif
+
+                                                @if ($question->{'opsi_'.$option})
+                                                    {!! $question->{'opsi_'.$option} !!}
+                                                @endif
 
                                             </div>
 

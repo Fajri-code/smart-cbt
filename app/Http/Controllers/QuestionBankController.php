@@ -126,6 +126,11 @@ class QuestionBankController extends Controller
                 'string'
             ],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
+            'opsi_a_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
+            'opsi_b_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
+            'opsi_c_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
+            'opsi_d_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
+            'opsi_e_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
 
             'petunjuk_jawaban' => [
                 'nullable',
@@ -169,6 +174,17 @@ class QuestionBankController extends Controller
             ],
         ]);
 
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('questions', 'public');
+        }
+
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $field = 'opsi_' . $opt . '_image';
+            if ($request->hasFile($field)) {
+                $data[$field] = $request->file($field)->store('questions/options', 'public');
+            }
+        }
+
         BankQuestion::create([
             ...$data,
             'question_bank_id' => $bankSoal->id,
@@ -193,6 +209,16 @@ class QuestionBankController extends Controller
             $bankQuestion->question_bank_id === $bankSoal->id,
             404
         );
+
+        if ($bankQuestion->image) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($bankQuestion->image);
+        }
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $field = 'opsi_' . $opt . '_image';
+            if ($bankQuestion->$field) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($bankQuestion->$field);
+            }
+        }
 
         $bankQuestion->delete();
 
@@ -374,14 +400,20 @@ class QuestionBankController extends Controller
                     ],
                     [
                         'tipe' => $question->tipe,
+                        'image' => $question->image,
                         'petunjuk_jawaban' =>
                             $question->petunjuk_jawaban,
 
                         'opsi_a' => $question->opsi_a,
+                        'opsi_a_image' => $question->opsi_a_image,
                         'opsi_b' => $question->opsi_b,
+                        'opsi_b_image' => $question->opsi_b_image,
                         'opsi_c' => $question->opsi_c,
+                        'opsi_c_image' => $question->opsi_c_image,
                         'opsi_d' => $question->opsi_d,
+                        'opsi_d_image' => $question->opsi_d_image,
                         'opsi_e' => $question->opsi_e,
+                        'opsi_e_image' => $question->opsi_e_image,
 
                         'kunci' => $question->kunci,
                         'bobot' => $question->bobot,

@@ -68,14 +68,20 @@
                                     
                                     $jawabanDisplay = $ans->jawaban ?: '-';
                                     if ($hasAnswered && $isPG && in_array(strtolower($ans->jawaban), ['a','b','c','d','e'])) {
-                                        $field = 'opsi_' . strtolower($ans->jawaban);
-                                        $jawabanDisplay = '<strong>' . strtoupper($ans->jawaban) . '.</strong> ' . $ans->question->$field;
+                                        $opt = strtolower($ans->jawaban);
+                                        $field = 'opsi_' . $opt;
+                                        $imgField = 'opsi_' . $opt . '_image';
+                                        $imgHtml = $ans->question->$imgField ? '<div class="my-1"><img src="' . Storage::url($ans->question->$imgField) . '" class="max-h-20 rounded border border-slate-200 bg-white object-contain" alt="Gambar Jawaban"></div>' : '';
+                                        $jawabanDisplay = '<strong>' . strtoupper($ans->jawaban) . '.</strong> ' . $imgHtml . ($ans->question->$field ?? '');
                                     }
 
                                     $kunciDisplay = $ans->question->kunci ?: '-';
                                     if ($isPG && !empty($ans->question->kunci) && in_array(strtolower($ans->question->kunci), ['a','b','c','d','e'])) {
-                                        $field = 'opsi_' . strtolower($ans->question->kunci);
-                                        $kunciDisplay = '<strong>' . strtoupper($ans->question->kunci) . '.</strong> ' . $ans->question->$field;
+                                        $opt = strtolower($ans->question->kunci);
+                                        $field = 'opsi_' . $opt;
+                                        $imgField = 'opsi_' . $opt . '_image';
+                                        $imgHtml = $ans->question->$imgField ? '<div class="my-1"><img src="' . Storage::url($ans->question->$imgField) . '" class="max-h-20 rounded border border-slate-200 bg-white object-contain" alt="Gambar Kunci"></div>' : '';
+                                        $kunciDisplay = '<strong>' . strtoupper($ans->question->kunci) . '.</strong> ' . $imgHtml . ($ans->question->$field ?? '');
                                     }
                                     
                                     if (!$hasAnswered) {

@@ -27,12 +27,13 @@ class ExportController extends Controller
             return [
                 'No' => $question->urutan,
                 'Tipe Soal' => $question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Pertanyaan' => strip_tags($question->pertanyaan),
-                'Pilihan A' => strip_tags($question->opsi_a),
-                'Pilihan B' => strip_tags($question->opsi_b),
-                'Pilihan C' => strip_tags($question->opsi_c),
-                'Pilihan D' => strip_tags($question->opsi_d),
-                'Jawaban Benar' => strtoupper($question->kunci),
+                'Pertanyaan' => strip_tags((string) ($question->pertanyaan ?? '')),
+                'Pilihan A' => strip_tags((string) ($question->opsi_a ?? ($question->opsi_a_image ? '[Gambar]' : ''))),
+                'Pilihan B' => strip_tags((string) ($question->opsi_b ?? ($question->opsi_b_image ? '[Gambar]' : ''))),
+                'Pilihan C' => strip_tags((string) ($question->opsi_c ?? ($question->opsi_c_image ? '[Gambar]' : ''))),
+                'Pilihan D' => strip_tags((string) ($question->opsi_d ?? ($question->opsi_d_image ? '[Gambar]' : ''))),
+                'Pilihan E' => strip_tags((string) ($question->opsi_e ?? ($question->opsi_e_image ? '[Gambar]' : ''))),
+                'Jawaban Benar' => strtoupper((string) ($question->kunci ?? '')),
                 'Bobot' => $question->bobot,
             ];
         });
@@ -56,12 +57,13 @@ class ExportController extends Controller
             return [
                 'No' => $no++,
                 'Tipe Soal' => $question->tipe === 'pg' ? 'Pilihan Ganda' : 'Essay',
-                'Pertanyaan' => strip_tags($question->pertanyaan),
-                'Pilihan A' => strip_tags($question->opsi_a),
-                'Pilihan B' => strip_tags($question->opsi_b),
-                'Pilihan C' => strip_tags($question->opsi_c),
-                'Pilihan D' => strip_tags($question->opsi_d),
-                'Jawaban Benar' => strtoupper($question->kunci),
+                'Pertanyaan' => strip_tags((string) ($question->pertanyaan ?? '')),
+                'Pilihan A' => strip_tags((string) ($question->opsi_a ?? ($question->opsi_a_image ? '[Gambar]' : ''))),
+                'Pilihan B' => strip_tags((string) ($question->opsi_b ?? ($question->opsi_b_image ? '[Gambar]' : ''))),
+                'Pilihan C' => strip_tags((string) ($question->opsi_c ?? ($question->opsi_c_image ? '[Gambar]' : ''))),
+                'Pilihan D' => strip_tags((string) ($question->opsi_d ?? ($question->opsi_d_image ? '[Gambar]' : ''))),
+                'Pilihan E' => strip_tags((string) ($question->opsi_e ?? ($question->opsi_e_image ? '[Gambar]' : ''))),
+                'Jawaban Benar' => strtoupper((string) ($question->kunci ?? '')),
                 'Bobot' => $question->bobot,
             ];
         });

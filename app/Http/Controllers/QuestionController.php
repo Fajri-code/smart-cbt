@@ -75,6 +75,14 @@ class QuestionController extends Controller
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('questions', 'public');
         }
+
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $field = 'opsi_' . $opt . '_image';
+            if ($request->hasFile($field)) {
+                $data[$field] = $request->file($field)->store('questions/options', 'public');
+            }
+        }
+
         Question::create($data);
         $ujian->prepareToken();
 
@@ -108,6 +116,22 @@ class QuestionController extends Controller
             }
             $data['image'] = $request->file('image')->store('questions', 'public');
         }
+
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $field = 'opsi_' . $opt . '_image';
+            $removeField = 'remove_' . $field;
+            if ($request->input($removeField)) {
+                if ($soal->$field) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->$field);
+                }
+                $data[$field] = null;
+            } elseif ($request->hasFile($field)) {
+                if ($soal->$field) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->$field);
+                }
+                $data[$field] = $request->file($field)->store('questions/options', 'public');
+            }
+        }
         
         $soal->update($data);
         $ujian->prepareToken();
@@ -119,6 +143,17 @@ class QuestionController extends Controller
     {
         $this->owned($ujian, $request);
         abort_unless($soal->exam_id === $ujian->id, 404);
+
+        if ($soal->image) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->image);
+        }
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $field = 'opsi_' . $opt . '_image';
+            if ($soal->$field) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($soal->$field);
+            }
+        }
+
         $soal->delete();
 
         return to_route('guru.soal.index', $ujian)->with('success', 'Soal berhasil dihapus.');
@@ -162,12 +197,18 @@ class QuestionController extends Controller
         $question = new Question([
             'tipe' => $bankQuestion->tipe,
             'pertanyaan' => $bankQuestion->pertanyaan,
+            'image' => $bankQuestion->image,
             'petunjuk_jawaban' => $bankQuestion->petunjuk_jawaban,
             'opsi_a' => $bankQuestion->opsi_a,
+            'opsi_a_image' => $bankQuestion->opsi_a_image,
             'opsi_b' => $bankQuestion->opsi_b,
+            'opsi_b_image' => $bankQuestion->opsi_b_image,
             'opsi_c' => $bankQuestion->opsi_c,
+            'opsi_c_image' => $bankQuestion->opsi_c_image,
             'opsi_d' => $bankQuestion->opsi_d,
+            'opsi_d_image' => $bankQuestion->opsi_d_image,
             'opsi_e' => $bankQuestion->opsi_e,
+            'opsi_e_image' => $bankQuestion->opsi_e_image,
             'kunci' => $bankQuestion->kunci,
             'bobot' => $bankQuestion->bobot,
             'exam_id' => $ujian->id,
@@ -195,12 +236,18 @@ class QuestionController extends Controller
             Question::create([
                 'tipe' => $bankQuestion->tipe,
                 'pertanyaan' => $bankQuestion->pertanyaan,
+                'image' => $bankQuestion->image,
                 'petunjuk_jawaban' => $bankQuestion->petunjuk_jawaban,
                 'opsi_a' => $bankQuestion->opsi_a,
+                'opsi_a_image' => $bankQuestion->opsi_a_image,
                 'opsi_b' => $bankQuestion->opsi_b,
+                'opsi_b_image' => $bankQuestion->opsi_b_image,
                 'opsi_c' => $bankQuestion->opsi_c,
+                'opsi_c_image' => $bankQuestion->opsi_c_image,
                 'opsi_d' => $bankQuestion->opsi_d,
+                'opsi_d_image' => $bankQuestion->opsi_d_image,
                 'opsi_e' => $bankQuestion->opsi_e,
+                'opsi_e_image' => $bankQuestion->opsi_e_image,
                 'kunci' => $bankQuestion->kunci,
                 'bobot' => $bankQuestion->bobot,
                 'exam_id' => $ujian->id,
@@ -217,7 +264,7 @@ class QuestionController extends Controller
 
     private function validated(Request $request, ?Exam $exam = null): array
     {
-        return $request->validate([
+        $rules = [
             'tipe' => ['required', 'in:pg,essay_1,essay_2'],
             'pertanyaan' => ['required', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'],
@@ -227,7 +274,14 @@ class QuestionController extends Controller
             'opsi_c' => ['nullable', 'string'], 'opsi_d' => ['nullable', 'string'], 'opsi_e' => ['nullable', 'string'],
             'kunci' => ['nullable', 'in:A,B,C,D,E'],
             'bobot' => ['required', 'numeric', 'min:0'],
-        ]);
+        ];
+
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $rules['opsi_' . $opt . '_image'] = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,svg', 'max:2048'];
+            $rules['remove_opsi_' . $opt . '_image'] = ['nullable', 'boolean'];
+        }
+
+        return $request->validate($rules);
 
         if ($exam && ! in_array($data['tipe'], $this->allowedTypes($exam), true)) {
             abort(422, 'Jenis soal tidak termasuk komponen ujian ini.');
